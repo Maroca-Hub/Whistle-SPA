@@ -55,7 +55,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
   margin-top: var(--space-2);
 }
 
@@ -63,6 +63,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+.errorMessage {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font: var(--text-label);
+  font-family: var(--font-family);
+  text-align: center;
+  margin-bottom: var(--space-2);
 }
 
 .label {
@@ -93,6 +105,22 @@
 
 .input:focus {
   border-color: var(--color-primary);
+}
+
+.input.inputError {
+  border-color: #dc2626;
+}
+
+.input.inputError:focus {
+  border-color: #dc2626;
+}
+
+.fieldError {
+  font: var(--text-caption);
+  font-family: var(--font-family);
+  color: #dc2626;
+  margin-top: calc(var(--space-2) - 4px);
+  padding: 0 var(--space-1);
 }
 
 /* ---- Password field ---- */
@@ -155,6 +183,11 @@
 
 .submitButton:active {
   opacity: 0.88;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ---- Divider ---- */

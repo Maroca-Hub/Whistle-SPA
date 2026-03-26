@@ -1,8 +1,28 @@
 import { useState } from "react";
 import styles from "./Login.module.css";
+import { authService, ApiError } from "../../services/auth.service";
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidPassword(password: string): boolean {
+  return password.length >= 8;
+}
 
 export function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const emailError = email && !isValidEmail(email) ? "E-mail inválido." : null;
+  const passwordError =
+    password && !isValidPassword(password)
+      ? "A senha deve ter pelo menos 8 caracteres."
+      : null;
+  const hasValidationErrors = Boolean(emailError || passwordError);
 
   return (
     <main className={styles.container}>
@@ -30,7 +50,37 @@ export function Login() {
           Acesse sua conta para continuar sua jornada.
         </p>
 
-        <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+        {error && <div className={styles.errorMessage}>{error}</div>}
+
+        <form
+          className={styles.form}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            setLoading(true);
+
+            try {
+              const response = await authService.login({ email, password });
+              localStorage.setItem("access_token", response.access_token);
+              localStorage.setItem("refresh_token", response.refresh_token);
+              console.log("Login realizado com sucesso");
+            } catch (err) {
+              if (err instanceof ApiError) {
+                if (err.status === 404) {
+                  setError("E-mail ou senha incorretos.");
+                } else {
+                  setError(`Erro: ${err.message}`);
+                }
+              } else if (err instanceof Error) {
+                setError(err.message);
+              } else {
+                setError("Erro ao fazer login. Tente novamente.");
+              }
+            } finally {
+              setLoading(false);
+            }
+          }}
+        >
           <div className={styles.field}>
             <label htmlFor="email" className={styles.label}>
               E-mail
@@ -38,10 +88,14 @@ export function Login() {
             <input
               id="email"
               type="email"
-              className={styles.input}
+              className={`${styles.input} ${emailError ? styles.inputError : ""}`}
               placeholder="nome@exemplo.com"
               autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
+            {emailError && <p className={styles.fieldError}>{emailError}</p>}
           </div>
 
           <div className={styles.field}>
@@ -57,9 +111,12 @@ export function Login() {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                className={styles.input}
+                className={`${styles.input} ${passwordError ? styles.inputError : ""}`}
                 placeholder="••••••••"
                 autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
               <button
                 type="button"
@@ -101,10 +158,17 @@ export function Login() {
                 )}
               </button>
             </div>
+            {passwordError && (
+              <p className={styles.fieldError}>{passwordError}</p>
+            )}
           </div>
 
-          <button type="submit" className={styles.submitButton}>
-            Entrar
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={loading || !email || !password || hasValidationErrors}
+          >
+            {loading ? "Carregando..." : "Entrar"}
           </button>
         </form>
 
