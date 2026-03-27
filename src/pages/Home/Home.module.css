@@ -538,6 +538,7 @@
   align-items: flex-end;
   justify-content: center;
   z-index: 90;
+  animation: modalOverlayIn 0.22s ease forwards;
 }
 
 .modalSheet {
@@ -549,6 +550,15 @@
   max-height: min(78dvh, 760px);
   display: flex;
   flex-direction: column;
+  animation: modalSheetIn 0.28s cubic-bezier(0.22, 0.8, 0.2, 1) forwards;
+}
+
+.modalOverlayClosing {
+  animation: modalOverlayOut 0.22s ease forwards;
+}
+
+.modalSheetClosing {
+  animation: modalSheetOut 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 .modalHandle {
@@ -667,6 +677,42 @@
   text-align: center;
   color: #697587;
   font-size: 0.92rem;
+}
+
+@keyframes modalOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalSheetIn {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSheetOut {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 
 .navItemActive {

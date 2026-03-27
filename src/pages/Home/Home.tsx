@@ -9,6 +9,7 @@ export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isTaskModalClosing, setIsTaskModalClosing] = useState(false);
   const [taskItems, setTaskItems] = useState<Skill[]>([]);
   const [taskPage, setTaskPage] = useState(1);
   const [hasMoreTasks, setHasMoreTasks] = useState(true);
@@ -17,12 +18,17 @@ export function Home() {
   const [taskSearch, setTaskSearch] = useState("");
 
   const openTaskModal = useCallback(() => {
+    setIsTaskModalClosing(false);
     setIsTaskModalOpen(true);
   }, []);
 
   const closeTaskModal = useCallback(() => {
-    setIsTaskModalOpen(false);
-  }, []);
+    if (!isTaskModalOpen) {
+      return;
+    }
+
+    setIsTaskModalClosing(true);
+  }, [isTaskModalOpen]);
 
   const loadTaskPage = useCallback(async (page: number, reset = false) => {
     setIsLoadingTasks(true);
@@ -71,6 +77,21 @@ export function Home() {
       document.body.style.overflow = "";
     };
   }, [isTaskModalOpen, loadTaskPage, closeTaskModal]);
+
+  useEffect(() => {
+    if (!isTaskModalClosing) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsTaskModalOpen(false);
+      setIsTaskModalClosing(false);
+    }, 260);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isTaskModalClosing]);
 
   const filteredTaskItems = useMemo(() => {
     if (!taskSearch.trim()) {
@@ -525,9 +546,12 @@ export function Home() {
       </nav>
 
       {isTaskModalOpen && (
-        <div className={styles.modalOverlay} onClick={closeTaskModal}>
+        <div
+          className={`${styles.modalOverlay} ${isTaskModalClosing ? styles.modalOverlayClosing : ""}`}
+          onClick={closeTaskModal}
+        >
           <section
-            className={styles.modalSheet}
+            className={`${styles.modalSheet} ${isTaskModalClosing ? styles.modalSheetClosing : ""}`}
             onClick={(event) => event.stopPropagation()}
             aria-modal="true"
             role="dialog"
