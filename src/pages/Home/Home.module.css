@@ -103,6 +103,9 @@
   gap: 10px;
   padding: 0 18px;
   color: #88929e;
+  border: none;
+  cursor: pointer;
+  text-align: left;
 }
 
 .searchInput {
@@ -112,6 +115,7 @@
   background: transparent;
   font-size: 1.05rem;
   color: #6b7280;
+  pointer-events: none;
 }
 
 .searchInput::placeholder {
@@ -516,6 +520,153 @@
   cursor: pointer;
   color: #9ca3af;
   padding: 8px 12px;
+}
+
+.navLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Task Modal */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.36);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 90;
+}
+
+.modalSheet {
+  width: 100%;
+  max-width: 430px;
+  background: #f6f6f7;
+  border-radius: 28px 28px 0 0;
+  padding: 12px 18px calc(90px + env(safe-area-inset-bottom));
+  max-height: min(78dvh, 760px);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHandle {
+  width: 68px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #e1e1e3;
+  margin: 2px auto 18px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 2.7rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #141b23;
+}
+
+.modalSubtitle {
+  margin: 10px 0 18px;
+  font-size: 1.05rem;
+  color: #2f3946;
+}
+
+.modalSearchBox {
+  height: 58px;
+  border-radius: 9999px;
+  background: #ebebed;
+  color: #8a94a3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+}
+
+.modalSearchInput {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 1.02rem;
+  color: #2d3748;
+}
+
+.modalSearchInput::placeholder {
+  color: #7a8596;
+}
+
+.modalTaskList {
+  margin-top: 18px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.modalTaskCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 94px;
+  border-radius: 22px;
+  background: #ececee;
+  padding: 12px;
+}
+
+.modalTaskCard + .modalTaskCard {
+  margin-top: 12px;
+}
+
+.modalTaskAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.modalTaskAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalTaskTextBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.modalTaskTitle {
+  margin: 0;
+  color: #151b23;
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.modalTaskDescription {
+  margin: 4px 0 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modalTaskChevron {
+  color: #bec6d1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalStatusText {
+  margin: 14px 0 0;
+  text-align: center;
+  color: #697587;
+  font-size: 0.92rem;
 }
 
 .navItemActive {

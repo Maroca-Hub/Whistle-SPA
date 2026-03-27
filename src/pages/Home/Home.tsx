@@ -1,11 +1,51 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type UIEvent,
+} from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
 import { skillsService, type Skill } from "../../services/skills.service";
 
+const TASK_LIST_SIZE = 20;
+
 export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskItems, setTaskItems] = useState<Skill[]>([]);
+  const [taskPage, setTaskPage] = useState(1);
+  const [hasMoreTasks, setHasMoreTasks] = useState(true);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+  const [taskListError, setTaskListError] = useState<string | null>(null);
+  const [taskSearch, setTaskSearch] = useState("");
+
+  const openTaskModal = useCallback(() => {
+    setIsTaskModalOpen(true);
+  }, []);
+
+  const closeTaskModal = useCallback(() => {
+    setIsTaskModalOpen(false);
+  }, []);
+
+  const loadTaskPage = useCallback(async (page: number, reset = false) => {
+    setIsLoadingTasks(true);
+    setTaskListError(null);
+
+    try {
+      const response = await skillsService.getTopSkills(page, TASK_LIST_SIZE);
+
+      setTaskItems((prev) => (reset ? response : [...prev, ...response]));
+      setTaskPage(page);
+      setHasMoreTasks(response.length >= TASK_LIST_SIZE);
+    } catch {
+      setTaskListError("Erro ao carregar tarefas.");
+    } finally {
+      setIsLoadingTasks(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadUser();
@@ -14,6 +54,60 @@ export function Home() {
       .then(setSkills)
       .catch(() => {});
   }, [loadUser]);
+
+  useEffect(() => {
+    if (!isTaskModalOpen) {
+      return;
+    }
+
+    loadTaskPage(1, true);
+    setTaskSearch("");
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeTaskModal();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isTaskModalOpen, loadTaskPage, closeTaskModal]);
+
+  const filteredTaskItems = useMemo(() => {
+    if (!taskSearch.trim()) {
+      return taskItems;
+    }
+
+    const normalized = taskSearch.toLowerCase();
+
+    return taskItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(normalized) ||
+        item.description.toLowerCase().includes(normalized),
+    );
+  }, [taskItems, taskSearch]);
+
+  const handleTaskListScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      const target = event.currentTarget;
+      const threshold = 48;
+      const reachedBottom =
+        target.scrollTop + target.clientHeight >= target.scrollHeight - threshold;
+
+      if (!reachedBottom || isLoadingTasks || !hasMoreTasks) {
+        return;
+      }
+
+      loadTaskPage(taskPage + 1);
+    },
+    [hasMoreTasks, isLoadingTasks, loadTaskPage, taskPage],
+  );
+
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
@@ -62,7 +156,19 @@ export function Home() {
           </button>
         </header>
 
-        <div className={styles.searchBox}>
+        <div
+          className={styles.searchBox}
+          onClick={openTaskModal}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openTaskModal();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Abrir listagem de tarefas"
+        >
           <svg
             width="20"
             height="20"
@@ -91,6 +197,7 @@ export function Home() {
             type="text"
             placeholder="Buscar servico"
             aria-label="Buscar servico"
+            readOnly
           />
         </div>
 
@@ -103,7 +210,11 @@ export function Home() {
         <section className={styles.skillsSection}>
           <div className={styles.skillsHeader}>
             <h2 className={styles.skillsTitle}>Serviços em alta</h2>
-            <button type="button" className={styles.skillsViewAll}>
+            <button
+              type="button"
+              className={styles.skillsViewAll}
+              onClick={openTaskModal}
+            >
               Ver todos
             </button>
           </div>
@@ -325,7 +436,12 @@ export function Home() {
         </section>
       </section>
 
-      <button type="button" className={styles.fab} aria-label="Criar tarefa">
+      <button
+        type="button"
+        className={styles.fab}
+        aria-label="Criar tarefa"
+        onClick={openTaskModal}
+      >
         <svg
           width="24"
           height="24"
@@ -412,6 +528,108 @@ export function Home() {
           <span className={styles.navLabel}>Perfil</span>
         </button>
       </nav>
+
+      {isTaskModalOpen && (
+        <div className={styles.modalOverlay} onClick={closeTaskModal}>
+          <section
+            className={styles.modalSheet}
+            onClick={(event) => event.stopPropagation()}
+            aria-modal="true"
+            role="dialog"
+            aria-label="Nova Tarefa"
+          >
+            <div className={styles.modalHandle} aria-hidden="true" />
+
+            <h2 className={styles.modalTitle}>Nova Tarefa</h2>
+            <p className={styles.modalSubtitle}>
+              Selecione uma categoria para começar.
+            </p>
+
+            <div className={styles.modalSearchBox}>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M21 21L16.65 16.65"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+
+              <input
+                className={styles.modalSearchInput}
+                type="text"
+                placeholder="Busque por habilidades (ex: Python,...)"
+                value={taskSearch}
+                onChange={(event) => setTaskSearch(event.target.value)}
+              />
+            </div>
+
+            <div className={styles.modalTaskList} onScroll={handleTaskListScroll}>
+              {filteredTaskItems.map((task) => (
+                <article key={task.id} className={styles.modalTaskCard}>
+                  <div className={styles.modalTaskAvatar}>
+                    <img src={task.icon} alt="" aria-hidden="true" />
+                  </div>
+
+                  <div className={styles.modalTaskTextBlock}>
+                    <h3 className={styles.modalTaskTitle}>{task.name}</h3>
+                    <p className={styles.modalTaskDescription}>{task.description}</p>
+                  </div>
+
+                  <div className={styles.modalTaskChevron} aria-hidden="true">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 6L15 12L9 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </article>
+              ))}
+
+              {isLoadingTasks && (
+                <p className={styles.modalStatusText}>Carregando tarefas...</p>
+              )}
+
+              {!isLoadingTasks && taskListError && (
+                <p className={styles.modalStatusText}>{taskListError}</p>
+              )}
+
+              {!isLoadingTasks && !taskListError && filteredTaskItems.length === 0 && (
+                <p className={styles.modalStatusText}>Nenhuma tarefa encontrada.</p>
+              )}
+
+              {!isLoadingTasks && !taskListError && !hasMoreTasks && taskItems.length > 0 && (
+                <p className={styles.modalStatusText}>Você chegou ao fim da lista.</p>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
