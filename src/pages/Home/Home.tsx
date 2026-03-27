@@ -25,6 +25,7 @@ export function Home() {
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
   const [skillListError, setSkillListError] = useState<string | null>(null);
   const [skillSearch, setSkillSearch] = useState("");
+  const [debouncedSkillSearch, setDebouncedSkillSearch] = useState("");
 
   const openTaskModal = useCallback(() => {
     setIsTaskModalClosing(false);
@@ -81,6 +82,7 @@ export function Home() {
 
     loadSkillPage(1, true);
     setSkillSearch("");
+    setDebouncedSkillSearch("");
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -112,19 +114,29 @@ export function Home() {
     };
   }, [isTaskModalClosing]);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSkillSearch(skillSearch);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [skillSearch]);
+
   const filteredSkillItems = useMemo(() => {
-    if (!skillSearch.trim()) {
+    if (!debouncedSkillSearch.trim()) {
       return skillItems;
     }
 
-    const normalized = skillSearch.toLowerCase();
+    const normalized = debouncedSkillSearch.toLowerCase();
 
     return skillItems.filter(
       (item) =>
         item.name.toLowerCase().includes(normalized) ||
         item.description.toLowerCase().includes(normalized),
     );
-  }, [skillItems, skillSearch]);
+  }, [debouncedSkillSearch, skillItems]);
 
   const handleSkillListScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
