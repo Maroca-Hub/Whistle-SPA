@@ -5,19 +5,19 @@ import { skillsService, type Skill } from "../../services/skills.service";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 
-const TASK_LIST_SIZE = 20;
+const SKILL_LIST_SIZE = 20;
 
 export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isTaskModalClosing, setIsTaskModalClosing] = useState(false);
-  const [taskItems, setTaskItems] = useState<Skill[]>([]);
-  const [taskPage, setTaskPage] = useState(1);
-  const [hasMoreTasks, setHasMoreTasks] = useState(true);
-  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
-  const [taskListError, setTaskListError] = useState<string | null>(null);
-  const [taskSearch, setTaskSearch] = useState("");
+  const [skillItems, setSkillItems] = useState<Skill[]>([]);
+  const [skillPage, setSkillPage] = useState(1);
+  const [hasMoreSkills, setHasMoreSkills] = useState(true);
+  const [isLoadingSkills, setIsLoadingSkills] = useState(false);
+  const [skillListError, setSkillListError] = useState<string | null>(null);
+  const [skillSearch, setSkillSearch] = useState("");
 
   const openTaskModal = useCallback(() => {
     setIsTaskModalClosing(false);
@@ -32,20 +32,20 @@ export function Home() {
     setIsTaskModalClosing(true);
   }, [isTaskModalOpen]);
 
-  const loadTaskPage = useCallback(async (page: number, reset = false) => {
-    setIsLoadingTasks(true);
-    setTaskListError(null);
+  const loadSkillPage = useCallback(async (page: number, reset = false) => {
+    setIsLoadingSkills(true);
+    setSkillListError(null);
 
     try {
-      const response = await skillsService.getTopSkills(page, TASK_LIST_SIZE);
+      const response = await skillsService.getTopSkills(page, SKILL_LIST_SIZE);
 
-      setTaskItems((prev) => (reset ? response : [...prev, ...response]));
-      setTaskPage(page);
-      setHasMoreTasks(response.length >= TASK_LIST_SIZE);
+      setSkillItems((prev) => (reset ? response : [...prev, ...response]));
+      setSkillPage(page);
+      setHasMoreSkills(response.length >= SKILL_LIST_SIZE);
     } catch {
-      setTaskListError("Erro ao carregar tarefas.");
+      setSkillListError("Erro ao carregar tarefas.");
     } finally {
-      setIsLoadingTasks(false);
+      setIsLoadingSkills(false);
     }
   }, []);
 
@@ -62,8 +62,8 @@ export function Home() {
       return;
     }
 
-    loadTaskPage(1, true);
-    setTaskSearch("");
+    loadSkillPage(1, true);
+    setSkillSearch("");
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -78,7 +78,7 @@ export function Home() {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isTaskModalOpen, loadTaskPage, closeTaskModal]);
+  }, [isTaskModalOpen, loadSkillPage, closeTaskModal]);
 
   useEffect(() => {
     if (!isTaskModalClosing) {
@@ -95,21 +95,21 @@ export function Home() {
     };
   }, [isTaskModalClosing]);
 
-  const filteredTaskItems = useMemo(() => {
-    if (!taskSearch.trim()) {
-      return taskItems;
+  const filteredSkillItems = useMemo(() => {
+    if (!skillSearch.trim()) {
+      return skillItems;
     }
 
-    const normalized = taskSearch.toLowerCase();
+    const normalized = skillSearch.toLowerCase();
 
-    return taskItems.filter(
+    return skillItems.filter(
       (item) =>
         item.name.toLowerCase().includes(normalized) ||
         item.description.toLowerCase().includes(normalized),
     );
-  }, [taskItems, taskSearch]);
+  }, [skillItems, skillSearch]);
 
-  const handleTaskListScroll = useCallback(
+  const handleSkillListScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
       const target = event.currentTarget;
       const threshold = 48;
@@ -117,13 +117,13 @@ export function Home() {
         target.scrollTop + target.clientHeight >=
         target.scrollHeight - threshold;
 
-      if (!reachedBottom || isLoadingTasks || !hasMoreTasks) {
+      if (!reachedBottom || isLoadingSkills || !hasMoreSkills) {
         return;
       }
 
-      loadTaskPage(taskPage + 1);
+      loadSkillPage(skillPage + 1);
     },
-    [hasMoreTasks, isLoadingTasks, loadTaskPage, taskPage],
+    [hasMoreSkills, isLoadingSkills, loadSkillPage, skillPage],
   );
 
   return (
@@ -489,16 +489,16 @@ export function Home() {
                 className={styles.modalSearchInput}
                 type="text"
                 placeholder="Busque por serviços"
-                value={taskSearch}
-                onChange={(event) => setTaskSearch(event.target.value)}
+                value={skillSearch}
+                onChange={(event) => setSkillSearch(event.target.value)}
               />
             </div>
 
             <div
               className={styles.modalTaskList}
-              onScroll={handleTaskListScroll}
+              onScroll={handleSkillListScroll}
             >
-              {filteredTaskItems.map((task) => (
+              {filteredSkillItems.map((task) => (
                 <article key={task.id} className={styles.modalTaskCard}>
                   <div className={styles.modalTaskAvatar}>
                     <img src={task.icon} alt="" aria-hidden="true" />
@@ -531,26 +531,26 @@ export function Home() {
                 </article>
               ))}
 
-              {isLoadingTasks && (
+              {isLoadingSkills && (
                 <p className={styles.modalStatusText}>Carregando tarefas...</p>
               )}
 
-              {!isLoadingTasks && taskListError && (
-                <p className={styles.modalStatusText}>{taskListError}</p>
+              {!isLoadingSkills && skillListError && (
+                <p className={styles.modalStatusText}>{skillListError}</p>
               )}
 
-              {!isLoadingTasks &&
-                !taskListError &&
-                filteredTaskItems.length === 0 && (
+              {!isLoadingSkills &&
+                !skillListError &&
+                filteredSkillItems.length === 0 && (
                   <p className={styles.modalStatusText}>
                     Nenhuma tarefa encontrada.
                   </p>
                 )}
 
-              {!isLoadingTasks &&
-                !taskListError &&
-                !hasMoreTasks &&
-                taskItems.length > 0 && (
+              {!isLoadingSkills &&
+                !skillListError &&
+                !hasMoreSkills &&
+                skillItems.length > 0 && (
                   <p className={styles.modalStatusText}>
                     Você chegou ao fim da lista.
                   </p>

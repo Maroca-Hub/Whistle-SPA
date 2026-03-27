@@ -32,7 +32,7 @@
   max-width: 430px;
   min-height: 100dvh;
   background-color: #f1f1f1;
-  padding: 22px 26px 40px;
+  padding: 22px 26px 100px;
 }
 
 .header {
@@ -302,6 +302,7 @@
   border: 1px solid #cfe3ea;
   border-radius: 24px;
   padding: 20px;
+  margin-top: 20px;
   margin-bottom: 12px;
 }
 

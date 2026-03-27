@@ -80,8 +80,13 @@ export interface TaskDetails extends CustomerTask {
 }
 
 export const tasksService = {
-  getCustomerTasks: (page = 1, size = 20) =>
-    api.get<CustomerTask[]>(`/tasks/customer?page=${page}&size=${size}`),
+  getCustomerTasks: (page = 1, size = 20, statuses?: TaskStatus[]) => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("size", String(size));
+    statuses?.forEach((s) => params.append("statuses", s));
+    return api.get<CustomerTask[]>(`/tasks/customer?${params.toString()}`);
+  },
   getTaskDetails: (taskId: string) => api.get<TaskDetails>(`/tasks/${taskId}`),
   getTaskCandidates: (taskId: string) =>
     api.get<TaskCandidate[]>(`/tasks/${taskId}/candidates`),

@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type UIEvent } from "react";
+import { useCallback, useEffect, useState, type UIEvent } from "react";
 import styles from "./Tasks.module.css";
 import { useUser } from "../../hooks/useUser";
-import { tasksService, type CustomerTask } from "../../services/tasks.service";
+import {
+  tasksService,
+  type CustomerTask,
+  type TaskStatus,
+} from "../../services/tasks.service";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 
@@ -78,44 +82,41 @@ export function Tasks() {
     loadUser();
   }, [loadUser]);
 
-  const loadPage = useCallback(async (targetPage: number, reset = false) => {
-    setIsLoading(true);
-    setError(null);
+  const filterToStatuses = useCallback(
+    (f: FilterType): TaskStatus[] | undefined => {
+      if (f === "active") return ["PENDING", "IN_PROGRESS"];
+      if (f === "done") return ["COMPLETED"];
+      return undefined;
+    },
+    [],
+  );
 
-    try {
-      const response = await tasksService.getCustomerTasks(
-        targetPage,
-        TASKS_PAGE_SIZE,
-      );
-      setTasks((previous) => (reset ? response : [...previous, ...response]));
-      setPage(targetPage);
-      setHasMore(response.length >= TASKS_PAGE_SIZE);
-    } catch {
-      setError("Erro ao carregar tarefas.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const loadPage = useCallback(
+    async (targetPage: number, currentFilter: FilterType, reset = false) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await tasksService.getCustomerTasks(
+          targetPage,
+          TASKS_PAGE_SIZE,
+          filterToStatuses(currentFilter),
+        );
+        setTasks((previous) => (reset ? response : [...previous, ...response]));
+        setPage(targetPage);
+        setHasMore(response.length >= TASKS_PAGE_SIZE);
+      } catch {
+        setError("Erro ao carregar tarefas.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [filterToStatuses],
+  );
 
   useEffect(() => {
-    loadPage(1, true);
-  }, [loadPage]);
-
-  const filteredTasks = useMemo(() => {
-    if (filter === "active") {
-      return tasks.filter(
-        (task) => task.status !== "COMPLETED" && task.status !== "CANCELLED",
-      );
-    }
-
-    if (filter === "done") {
-      return tasks.filter(
-        (task) => task.status === "COMPLETED" || task.status === "CANCELLED",
-      );
-    }
-
-    return tasks;
-  }, [filter, tasks]);
+    loadPage(1, filter, true);
+  }, [filter, loadPage]);
 
   const handleScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
@@ -129,9 +130,9 @@ export function Tasks() {
         return;
       }
 
-      loadPage(page + 1);
+      loadPage(page + 1, filter);
     },
-    [hasMore, isLoading, loadPage, page],
+    [filter, hasMore, isLoading, loadPage, page],
   );
 
   return (
@@ -171,7 +172,7 @@ export function Tasks() {
         </div>
 
         <section className={styles.list} onScroll={handleScroll}>
-          {filteredTasks.map((task) => {
+          {tasks.map((task) => {
             const status = getStatusConfig(task.status);
 
             return (
@@ -227,7 +228,7 @@ export function Tasks() {
             <p className={styles.statusText}>Carregando tarefas...</p>
           )}
           {!isLoading && error && <p className={styles.statusText}>{error}</p>}
-          {!isLoading && !error && filteredTasks.length === 0 && (
+          {!isLoading && !error && tasks.length === 0 && (
             <p className={styles.statusText}>
               Nenhuma tarefa para esse filtro.
             </p>
