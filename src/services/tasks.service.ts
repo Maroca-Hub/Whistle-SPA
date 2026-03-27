@@ -1,11 +1,6 @@
 import { api } from "./api";
 
-export type TaskStatus =
-  | "OPEN"
-  | "IN_PROGRESS"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "PENDING";
+export type TaskStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "PENDING";
 
 export interface TaskSkill {
   id: string;
@@ -87,6 +82,9 @@ export interface TaskDetails extends CustomerTask {
 export const tasksService = {
   getCustomerTasks: (page = 1, size = 20) =>
     api.get<CustomerTask[]>(`/tasks/customer?page=${page}&size=${size}`),
-
   getTaskDetails: (taskId: string) => api.get<TaskDetails>(`/tasks/${taskId}`),
+  getTaskCandidates: (taskId: string) =>
+    api.get<TaskCandidate[]>(`/tasks/${taskId}/candidates`),
+  createReview: (taskId: string, body: { rating: number; comment: string }) =>
+    api.post<TaskReview>(`/tasks/${taskId}/reviews`, body),
 };

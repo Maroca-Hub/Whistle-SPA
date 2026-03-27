@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 import {
   tasksService,
+  type TaskCandidate,
   type TaskDetails,
-  type TaskStatus,
 } from "../../services/tasks.service";
 import styles from "./TaskDetailsPage.module.css";
 
@@ -16,11 +16,20 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-function getStatusLabel(status: TaskStatus): string {
-  if (status === "IN_PROGRESS") return "EM ANDAMENTO";
-  if (status === "COMPLETED") return "CONCLUÍDO";
-  if (status === "CANCELLED") return "CANCELADO";
-  return "PENDENTE";
+function getStatusConfig(status: string | null) {
+  if (status === "COMPLETED") {
+    return { label: "CONCLUÍDO", className: styles.statusCompleted };
+  }
+
+  if (status === "CANCELLED") {
+    return { label: "CANCELADO", className: styles.statusCancelled };
+  }
+
+  if (status === "IN_PROGRESS") {
+    return { label: "EM ANDAMENTO", className: styles.statusInProgress };
+  }
+
+  return { label: "PENDENTE", className: styles.statusPending };
 }
 
 function formatDateLabel(isoDate: string): string {
@@ -44,8 +53,16 @@ function fullName(firstName?: string, lastName?: string): string {
 
 export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   const [task, setTask] = useState<TaskDetails | null>(null);
+  const [candidates, setCandidates] = useState<TaskCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isReviewed, setIsReviewed] = useState(false);
+
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -56,8 +73,21 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
 
       try {
         const response = await tasksService.getTaskDetails(taskId);
+
+        const shouldLoadCandidates = response.status === "PENDING";
+        const isReviewed =
+          response.reviews &&
+          response.reviews.some(
+            (review) => review.reviewer_id === response.customer_id,
+          );
+        const taskCandidates = shouldLoadCandidates
+          ? await tasksService.getTaskCandidates(taskId)
+          : [];
+
         if (isMounted) {
           setTask(response);
+          setCandidates(taskCandidates);
+          setIsReviewed(isReviewed);
         }
       } catch {
         if (isMounted) {
@@ -78,7 +108,38 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   }, [taskId]);
 
   const review = task?.reviews?.[0] ?? null;
-  const statusLabel = task ? getStatusLabel(task.status) : "-";
+
+  const handleSubmitReview = useCallback(async () => {
+    if (reviewRating === 0) {
+      setReviewError("Selecione uma nota.");
+      return;
+    }
+
+    if (reviewComment.length > 0 && reviewComment.length < 20) {
+      setReviewError("O comentário precisa ter no mínimo 20 caracteres.");
+      return;
+    }
+
+    setReviewError(null);
+    setIsSubmittingReview(true);
+
+    try {
+      const createdReview = await tasksService.createReview(taskId, {
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      setTask((prev) =>
+        prev ? { ...prev, reviews: [createdReview, ...prev.reviews] } : prev,
+      );
+      setIsReviewed(true);
+    } catch {
+      setReviewError("Erro ao enviar avaliação. Tente novamente.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  }, [reviewComment, reviewRating, taskId]);
+  const status = getStatusConfig(task?.status ?? null);
+  const isPendingTask = task?.status === "PENDING";
   const candidateName = task?.candidate
     ? fullName(task.candidate.first_name, task.candidate.last_name)
     : "Aguardando profissional";
@@ -119,24 +180,6 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
           </button>
 
           <h1 className={styles.headerTitle}>Detalhes da Tarefa</h1>
-
-          <button
-            type="button"
-            className={styles.headerIconButton}
-            aria-label="Mais opções"
-          >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="5" r="1.6" fill="currentColor" />
-              <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-              <circle cx="12" cy="19" r="1.6" fill="currentColor" />
-            </svg>
-          </button>
         </header>
 
         {isLoading && <p className={styles.feedback}>Carregando tarefa...</p>}
@@ -146,124 +189,219 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
           <>
             <section className={styles.summaryCard}>
               <div className={styles.summaryTop}>
-                <div>
-                  <p className={styles.summaryLabel}>STATUS ATUAL</p>
-                  <p className={styles.summaryStatus}>{statusLabel}</p>
-                </div>
-
-                <div className={styles.idChip}>
-                  <p className={styles.idLabel}>ID:</p>
-                  <p className={styles.idValue}>#{task.id.slice(0, 6)}</p>
-                </div>
+                <p className={styles.summaryLabel}>STATUS</p>
+                <p className={`${styles.summaryStatus} ${status.className}`}>
+                  {status.label}
+                </p>
               </div>
 
               <h2 className={styles.taskTitle}>{task.skill.name}</h2>
-
-              <div className={styles.professionTag}>
-                {task.skill.name} Profissional
-              </div>
 
               <p className={styles.taskDescription}>{task.description}</p>
 
               <div className={styles.summaryDivider} />
 
               <div className={styles.metaGrid}>
-                <div>
-                  <p className={styles.metaLabel}>DATA</p>
-                  <p className={styles.metaValue}>
-                    {formatDateLabel(task.created_at)}
-                  </p>
-                </div>
-                <div>
-                  <p className={styles.metaLabel}>LOCAL</p>
-                  <p className={styles.metaValue}>
-                    Lat {task.latitude.toFixed(2)}, Lng{" "}
-                    {task.longitude.toFixed(2)}
-                  </p>
-                </div>
+                <p className={styles.metaLabel}>DATA</p>
+                <p className={styles.metaValue}>
+                  {formatDateLabel(task.created_at)}
+                </p>
               </div>
             </section>
 
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h3 className={styles.sectionTitle}>Profissional</h3>
-                <button type="button" className={styles.chatButton}>
-                  Abrir Chat
-                </button>
-              </div>
+            {isPendingTask ? (
+              <section className={styles.section}>
+                <h3 className={styles.sectionTitle}>Candidatos</h3>
 
-              <article className={styles.proCard}>
-                <div className={styles.proInfo}>
-                  <div className={styles.proAvatar}>
-                    <img
-                      src={
-                        task.candidate?.profile_picture ||
-                        task.customer.profile_picture ||
-                        ""
-                      }
-                      alt=""
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div>
-                    <p className={styles.proName}>{candidateName}</p>
-                    <p className={styles.proMeta}>★ {candidateRating}</p>
-                  </div>
+                <div className={styles.candidatesList}>
+                  {candidates.map((candidate) => (
+                    <article
+                      key={candidate.id}
+                      className={`${styles.proCard} ${styles.candidateCard}`}
+                    >
+                      <div className={styles.candidateHeader}>
+                        <div className={styles.proInfo}>
+                          <div className={styles.proAvatar}>
+                            <img
+                              src={candidate.profile_picture}
+                              alt=""
+                              aria-hidden="true"
+                            />
+                          </div>
+
+                          <div>
+                            <p className={styles.proName}>
+                              {fullName(
+                                candidate.first_name,
+                                candidate.last_name,
+                              )}
+                            </p>
+                            <p className={styles.proMeta}>
+                              ★ {Number(candidate.rating ?? 0).toFixed(1)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={styles.priceBlock}>
+                          <p className={styles.priceLabel}>VALOR</p>
+                          <p className={styles.priceValue}>
+                            {formatCurrency(candidate.bid?.amount ?? 0)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={styles.candidateActions}>
+                        <button type="button" className={styles.rejectButton}>
+                          Rejeitar
+                        </button>
+                        <button type="button" className={styles.acceptButton}>
+                          Aceitar
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+
+                  {candidates.length === 0 && (
+                    <p className={styles.feedback}>
+                      Nenhum candidato no momento.
+                    </p>
+                  )}
+                </div>
+              </section>
+            ) : (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Profissional</h3>
+                  <button type="button" className={styles.chatButton}>
+                    Abrir Chat
+                  </button>
                 </div>
 
-                <div className={styles.priceBlock}>
-                  <p className={styles.priceLabel}>VALOR ACORDADO</p>
-                  <p className={styles.priceValue}>
-                    {formatCurrency(task.candidate?.bid?.amount ?? 0)}
-                  </p>
-                </div>
-              </article>
-            </section>
-
-            <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>Avaliar Serviço</h3>
-              <article className={styles.reviewCard}>
-                {review ? (
-                  <>
-                    <p className={styles.reviewText}>
-                      Comentário: {review.comment}
-                    </p>
-                    <p className={styles.reviewText}>
-                      Nota: {review.rating} / 5
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className={styles.reviewHint}>
-                      Como foi sua experiência com o profissional?
-                    </p>
-                    <div className={styles.stars} aria-hidden="true">
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
-                      <span>★</span>
+                <article className={styles.proCard}>
+                  <div className={styles.proInfo}>
+                    <div className={styles.proAvatar}>
+                      <img
+                        src={task.candidate?.profile_picture}
+                        alt=""
+                        aria-hidden="true"
+                      />
                     </div>
-                    <textarea
-                      className={styles.reviewInput}
-                      placeholder="Conte-nos o que achou do serviço prestado..."
-                    />
-                    <button type="button" className={styles.submitReviewButton}>
-                      Enviar Avaliação
-                    </button>
-                  </>
-                )}
-              </article>
-            </section>
+                    <div>
+                      <p className={styles.proName}>{candidateName}</p>
+                      <p className={styles.proMeta}>★ {candidateRating}</p>
+                    </div>
+                  </div>
 
-            <div className={styles.actions}>
+                  <div className={styles.priceBlock}>
+                    <p className={styles.priceLabel}>VALOR</p>
+                    <p className={styles.priceValue}>
+                      {formatCurrency(task.candidate?.bid?.amount ?? 0)}
+                    </p>
+                  </div>
+                </article>
+              </section>
+            )}
+
+            {task.status === "COMPLETED" && (
+              <section className={styles.section}>
+                <h3 className={styles.sectionTitle}>
+                  {isReviewed ? "Avaliação" : "Avaliar Serviço"}
+                </h3>
+                <article className={styles.reviewCard}>
+                  {review ? (
+                    <>
+                      <div className={styles.reviewStarsDisplay}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <span
+                            key={n}
+                            className={
+                              n <= review.rating
+                                ? styles.starFilled
+                                : styles.starEmpty
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <p className={styles.reviewDate}>
+                        {formatDateLabel(review.created_at)}
+                      </p>
+                      {review.comment && (
+                        <p className={styles.reviewExistingComment}>
+                          {review.comment}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className={styles.reviewHint}>
+                        Como foi sua experiência com{" "}
+                        {task.candidate
+                          ? fullName(
+                              task.candidate.first_name,
+                              task.candidate.last_name,
+                            )
+                          : "profissional"}
+                        ?
+                      </p>
+
+                      <div className={styles.starsInteractive}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            aria-label={`${n} estrelas`}
+                            className={
+                              n <= (reviewHover || reviewRating)
+                                ? styles.starFilled
+                                : styles.starEmpty
+                            }
+                            onClick={() => setReviewRating(n)}
+                            onMouseEnter={() => setReviewHover(n)}
+                            onMouseLeave={() => setReviewHover(0)}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+
+                      <textarea
+                        className={styles.reviewInput}
+                        placeholder="Conte-nos o que achou do serviço prestado..."
+                        value={reviewComment}
+                        maxLength={500}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                      />
+
+                      {reviewError && (
+                        <p className={styles.reviewError}>{reviewError}</p>
+                      )}
+
+                      <button
+                        type="button"
+                        className={styles.submitReviewButton}
+                        disabled={isSubmittingReview}
+                        onClick={handleSubmitReview}
+                      >
+                        {isSubmittingReview
+                          ? "Enviando..."
+                          : "Enviar Avaliação"}
+                      </button>
+                    </>
+                  )}
+                </article>
+              </section>
+            )}
+
+            {/* <div className={styles.actions}>
               <button type="button" className={styles.completeButton}>
                 Concluir tarefa
               </button>
               <button type="button" className={styles.cancelButton}>
                 Cancelar tarefa
               </button>
-            </div>
+            </div> */}
           </>
         )}
       </section>

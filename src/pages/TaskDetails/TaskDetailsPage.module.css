@@ -32,7 +32,7 @@
   max-width: 430px;
   min-height: 100dvh;
   background-color: #f1f1f1;
-  padding: 18px 20px 96px;
+  padding: 22px 26px 40px;
 }
 
 .header {
@@ -46,7 +46,7 @@
   margin: 0;
   text-align: center;
   color: #0b83ac;
-  font-size: 2rem;
+  font-size: 1.4rem;
   line-height: 1.1;
 }
 
@@ -77,6 +77,8 @@
 
 .summaryTop {
   display: flex;
+  align-items: center;
+  flex-direction: row;
   justify-content: space-between;
   gap: 12px;
 }
@@ -89,34 +91,37 @@
 }
 
 .summaryStatus {
-  margin: 6px 0 0;
-  color: #111827;
-  font-size: 1.9rem;
-  line-height: 1;
-}
-
-.idChip {
   border-radius: 9999px;
-  background: #edf1f4;
-  padding: 8px 14px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
-.idLabel {
-  margin: 0;
-  color: #0b83ac;
-  font-size: 0.7rem;
+.statusPending {
+  background: #fff3df;
+  color: #da8f00;
 }
 
-.idValue {
-  margin: 2px 0 0;
-  color: #1f2937;
-  font-size: 0.95rem;
+.statusInProgress {
+  background: #e5efff;
+  color: #2d6de0;
+}
+
+.statusCompleted {
+  background: #e5f7ef;
+  color: #00a86b;
+}
+
+.statusCancelled {
+  background: #ffe9e7;
+  color: #e04b40;
 }
 
 .taskTitle {
   margin: 16px 0 8px;
   color: #111827;
-  font-size: 2.3rem;
+  font-size: 1.6rem;
   line-height: 1.05;
 }
 
@@ -142,22 +147,21 @@
 }
 
 .metaGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .metaLabel {
-  margin: 0;
   color: #6b7280;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
 }
 
 .metaValue {
-  margin: 4px 0 0;
   color: #111827;
-  font-size: 1.05rem;
+  font-size: 0.82rem;
   line-height: 1.25;
 }
 
@@ -175,8 +179,9 @@
 .sectionTitle {
   margin: 0;
   color: #111827;
-  font-size: 1.9rem;
+  font-size: 1.4rem;
   line-height: 1.1;
+  margin-bottom: 8px;
 }
 
 .chatButton {
@@ -184,6 +189,52 @@
   background: transparent;
   color: #0b83ac;
   font-size: 1rem;
+}
+
+.candidatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.candidateCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.candidateHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.candidateActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.rejectButton,
+.acceptButton {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.acceptButton {
+  background: #04b35b;
+  color: #fff;
+}
+
+.rejectButton {
+  background: transparent;
+  border: 2px solid #e04b40;
+  background-color: #e04b40;
+  color: #fff;
 }
 
 .proCard {
@@ -219,7 +270,7 @@
 .proName {
   margin: 0;
   color: #111827;
-  font-size: 1.35rem;
+  font-size: 1rem;
 }
 
 .proMeta {
@@ -242,18 +293,24 @@
 .priceValue {
   margin: 4px 0 0;
   color: #0b83ac;
-  font-size: 2rem;
+  font-size: 1.2rem;
   line-height: 1;
 }
 
 .reviewCard {
-  background: #f6f6f7;
+  background: #eaf4f8;
   border: 1px solid #cfe3ea;
   border-radius: 24px;
-  padding: 16px;
+  padding: 20px;
 }
 
-.reviewHint,
+.reviewHint {
+  margin: 0 0 16px;
+  color: #374151;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
 .reviewText {
   margin: 0 0 10px;
   color: #374151;
@@ -261,33 +318,90 @@
   line-height: 1.35;
 }
 
-.stars {
+.reviewDate {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.reviewExistingComment {
+  margin: 10px 0 0;
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.starsInteractive {
   display: flex;
   gap: 8px;
-  font-size: 1.7rem;
+  margin-bottom: 16px;
+}
+
+.reviewStarsDisplay {
+  display: flex;
+  gap: 8px;
+}
+
+.starFilled,
+.starEmpty {
+  font-size: 2rem;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.starFilled {
   color: #eab308;
-  margin-bottom: 10px;
+}
+
+.starEmpty {
+  color: #d1d5db;
 }
 
 .reviewInput {
   width: 100%;
-  min-height: 84px;
-  border: 1px solid #e5e7eb;
+  min-height: 90px;
+  border: 1px solid #dce8ee;
   border-radius: 18px;
-  padding: 12px;
+  padding: 14px;
   background: #fff;
   resize: vertical;
+  font-size: 0.95rem;
+  color: #374151;
+  box-sizing: border-box;
+}
+
+.reviewInput::placeholder {
+  color: #9ca3af;
+}
+
+.reviewError {
+  margin: 8px 0 0;
+  color: #dc2626;
+  font-size: 0.85rem;
 }
 
 .submitReviewButton {
-  margin-top: 10px;
-  height: 48px;
-  padding: 0 22px;
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  height: 54px;
   border: none;
   border-radius: 9999px;
   background: #0d7ba6;
   color: #fff;
   font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submitReviewButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .actions {
@@ -310,9 +424,9 @@
 .cancelButton {
   height: 60px;
   border-radius: 9999px;
-  border: 2px solid #dc2626;
-  background: transparent;
-  color: #dc2626;
+  border: 2px solid #e04b40;
+  background-color: #e04b40;
+  color: #fff;
   font-size: 1.3rem;
   font-weight: 700;
 }
@@ -323,7 +437,7 @@
     padding-right: 16px;
   }
 
-  .taskTitle {
-    font-size: 2rem;
+  .candidateActions {
+    flex-direction: column;
   }
 }

@@ -146,7 +146,7 @@ export function Tasks() {
         <section className={styles.hero}>
           <h2 className={styles.title}>Minhas Tarefas</h2>
           <p className={styles.subtitle}>
-            Gerencie seus projetos e acompanhe o progresso em tempo real.
+            Gerencie suas demandas e acompanhe o progresso em tempo real.
           </p>
         </section>
 
@@ -208,7 +208,11 @@ export function Tasks() {
                     >
                       {status.label}
                     </span>
-                    <span className={styles.metaBadge}>{getTagText(task)}</span>
+                    {task.status === "PENDING" && (
+                      <span className={styles.proposalsBadge}>
+                        {getTagText(task)}
+                      </span>
+                    )}
                   </div>
                 </div>
 

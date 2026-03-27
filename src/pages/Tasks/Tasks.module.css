@@ -102,8 +102,8 @@
 }
 
 .skillIconBox {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   border-radius: 16px;
   background: #e4e7ec;
   display: flex;
@@ -128,7 +128,8 @@
 .statusBadge {
   border-radius: 9999px;
   padding: 6px 12px;
-  font-size: 0.92rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   letter-spacing: 0.03em;
 }
 
@@ -163,7 +164,7 @@
 .cardTitle {
   margin: 16px 0 6px;
   color: #161d24;
-  font-size: 2rem;
+  font-size: 1.4rem;
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
@@ -171,14 +172,14 @@
 .cardDescription {
   margin: 0;
   color: #404b57;
-  font-size: 1.08rem;
-  line-height: 1.35;
+  font-size: 1rem;
+  line-height: 1.2;
 }
 
 .dateLabel {
   margin: 14px 0 0;
   color: #7a858f;
-  font-size: 0.98rem;
+  font-size: 0.8rem;
 }
 
 .statusText {
