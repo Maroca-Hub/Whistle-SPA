@@ -1,0 +1,239 @@
+.container {
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      circle at 98% 6%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 12%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 18%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 24%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    var(--color-neutral-100);
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.panel {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  background-color: #f1f1f1;
+  padding: 22px 26px 40px;
+}
+
+.hero {
+  margin-top: 28px;
+}
+
+.title {
+  margin: 0;
+  color: #161d24;
+  font-size: clamp(2.5rem, 8vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: #374151;
+  font-size: 1.03rem;
+  line-height: 1.35;
+  max-width: 320px;
+}
+
+.filters {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.filterButton {
+  height: 48px;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  background: #f5f5f6;
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0 22px;
+}
+
+.filterButtonActive {
+  background: #0a89b2;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.list {
+  margin-top: 18px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.card {
+  background: #f5f5f6;
+  border: 1px solid #e8e8ea;
+  border-radius: 28px;
+  padding: 18px;
+}
+
+.card + .card {
+  margin-top: 14px;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.skillIconBox {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #e4e7ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.skillIcon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.cardBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.statusBadge {
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
+}
+
+.statusPending {
+  background: #fff3df;
+  color: #da8f00;
+}
+
+.statusInProgress {
+  background: #e5efff;
+  color: #2d6de0;
+}
+
+.statusCompleted {
+  background: #e5f7ef;
+  color: #00a86b;
+}
+
+.statusCancelled {
+  background: #ffe9e7;
+  color: #e04b40;
+}
+
+.metaBadge {
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  background: #eef0f3;
+  color: #28323f;
+}
+
+.cardTitle {
+  margin: 16px 0 6px;
+  color: #161d24;
+  font-size: 2rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.cardDescription {
+  margin: 0;
+  color: #404b57;
+  font-size: 1.08rem;
+  line-height: 1.35;
+}
+
+.dateLabel {
+  margin: 14px 0 0;
+  color: #7a858f;
+  font-size: 0.98rem;
+}
+
+.statusText {
+  margin: 14px 0 0;
+  text-align: center;
+  color: #697587;
+  font-size: 0.92rem;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 40;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 8px 12px;
+}
+
+.navItemActive {
+  color: #394fdc;
+}
+
+.navLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+@media (max-width: 375px) {
+  .panel {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .cardTitle {
+    font-size: 1.55rem;
+  }
+}

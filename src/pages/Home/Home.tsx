@@ -2,13 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type UIEvent } from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
 import { skillsService, type Skill } from "../../services/skills.service";
+import { AppHeader } from "../../components/AppHeader/AppHeader";
+import { BottomNav } from "../../components/BottomNav/BottomNav";
 
 const TASK_LIST_SIZE = 20;
-
-function navigate(path: string) {
-  window.history.pushState({}, "", path);
-  window.dispatchEvent(new PopStateEvent("popstate"));
-}
 
 export function Home() {
   const { user, loadUser } = useUser();
@@ -132,50 +129,10 @@ export function Home() {
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
-        <header className={styles.topBar}>
-          <div className={styles.userBlock}>
-            <div className={styles.avatar} aria-hidden="true">
-              <img
-                src={user?.profile_picture}
-                alt=""
-                className={styles.avatarImage}
-              />
-            </div>
-
-            <h1 className={styles.greeting}>
-              Olá, {user?.first_name ?? "..."}
-            </h1>
-          </div>
-
-          <button
-            type="button"
-            className={styles.iconButton}
-            aria-label="Notificacoes"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 18H9M17 10C17 8.67392 16.4732 7.40215 15.5355 6.46447C14.5979 5.52678 13.3261 5 12 5C10.6739 5 9.40215 5.52678 8.46447 6.46447C7.52678 7.40215 7 8.67392 7 10C7 12.6267 6.36054 14.4722 5.64935 15.7116C5.05045 16.7555 5.73431 18 6.95259 18H17.0474C18.2657 18 18.9495 16.7555 18.3507 15.7116C17.6395 14.4722 17 12.6267 17 10Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10 19C10 19.5304 10.2107 20.0391 10.5858 20.4142C10.9609 20.7893 11.4696 21 12 21C12.5304 21 13.0391 20.7893 13.4142 20.4142C13.7893 20.0391 14 19.5304 14 19"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </header>
+        <AppHeader
+          firstName={user?.first_name}
+          profilePicture={user?.profile_picture}
+        />
 
         <div
           className={styles.searchBox}
@@ -485,74 +442,7 @@ export function Home() {
         </svg>
       </button>
 
-      <nav className={styles.bottomNav}>
-        <button
-          type="button"
-          className={`${styles.navItem} ${styles.navItemActive}`}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3 10L12 3L21 10V20H3V10Z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className={styles.navLabel}>Home</span>
-        </button>
-
-        <button type="button" className={styles.navItem}>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M7 3V6M17 3V6M4 9H20M6 21H18C19.1046 21 20 20.1046 20 19V7C20 5.89543 19.1046 5 18 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21Z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className={styles.navLabel}>Tarefas</span>
-        </button>
-
-        <button
-          type="button"
-          className={styles.navItem}
-          onClick={() => navigate("/profile")}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <path
-              d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className={styles.navLabel}>Perfil</span>
-        </button>
-      </nav>
+      <BottomNav active="home" />
 
       {isTaskModalOpen && (
         <div

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
+import { Tasks } from "./pages/Tasks";
 import { UserProvider } from "./contexts/UserProvider";
 
 function App() {
@@ -38,6 +39,10 @@ function App() {
 
   if (path === "/profile") {
     return <Profile />;
+  }
+
+  if (path === "/tasks") {
+    return <Tasks />;
   }
 
   return <Login />;
