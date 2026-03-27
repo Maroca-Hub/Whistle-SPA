@@ -1,12 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
+import { skillsService, type Skill } from "../../services/skills.service";
 
 export function Home() {
   const { user, loadUser } = useUser();
+  const [skills, setSkills] = useState<Skill[]>([]);
 
   useEffect(() => {
     loadUser();
+    skillsService
+      .getTopSkills()
+      .then(setSkills)
+      .catch(() => {});
   }, [loadUser]);
   return (
     <main className={styles.container}>
@@ -92,6 +98,29 @@ export function Home() {
           <p className={styles.heroText}>
             encontre ajuda qualificada para suas demandas
           </p>
+        </section>
+
+        <section className={styles.skillsSection}>
+          <div className={styles.skillsHeader}>
+            <h2 className={styles.skillsTitle}>Serviços em alta</h2>
+            <button type="button" className={styles.skillsViewAll}>
+              Ver todos
+            </button>
+          </div>
+
+          <div className={styles.skillsList}>
+            {skills.map((skill) => (
+              <button key={skill.id} type="button" className={styles.skillChip}>
+                <img
+                  src={skill.icon}
+                  alt=""
+                  className={styles.skillChipIcon}
+                  aria-hidden="true"
+                />
+                {skill.name}
+              </button>
+            ))}
+          </div>
         </section>
       </section>
     </main>

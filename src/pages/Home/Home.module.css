@@ -152,3 +152,69 @@
     padding: 28px;
   }
 }
+
+/* Skills section */
+
+.skillsSection {
+  margin-top: 32px;
+}
+
+.skillsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.skillsTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.01em;
+}
+
+.skillsViewAll {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #394fdc;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.skillsList {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.skillsList::-webkit-scrollbar {
+  display: none;
+}
+
+.skillChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 9999px;
+  background-color: #f0f0f0;
+  border: 1.5px solid #e0e0e0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1f2937;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.skillChipIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
