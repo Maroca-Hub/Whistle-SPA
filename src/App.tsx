@@ -2,6 +2,7 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
+import { UserProvider } from "./contexts/UserProvider";
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
@@ -37,4 +38,12 @@ function App() {
   return <Login />;
 }
 
-export default App;
+function AppWithProviders() {
+  return (
+    <UserProvider>
+      <App />
+    </UserProvider>
+  );
+}
+
+export default AppWithProviders;

@@ -1,6 +1,13 @@
+import { useEffect } from "react";
 import styles from "./Home.module.css";
+import { useUser } from "../../hooks/useUser";
 
 export function Home() {
+  const { user, loadUser } = useUser();
+
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
@@ -8,13 +15,15 @@ export function Home() {
           <div className={styles.userBlock}>
             <div className={styles.avatar} aria-hidden="true">
               <img
-                src={"https://via.placeholder.com/150"}
+                src={user?.profile_picture}
                 alt=""
                 className={styles.avatarImage}
               />
             </div>
 
-            <h1 className={styles.greeting}>Ola, {"Usuario"}</h1>
+            <h1 className={styles.greeting}>
+              Olá, {user?.first_name ?? "..."}
+            </h1>
           </div>
 
           <button
