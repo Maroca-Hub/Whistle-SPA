@@ -240,7 +240,13 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Profissional</h3>
-                  <button type="button" className={styles.chatButton}>
+                  <button
+                    type="button"
+                    className={styles.chatButton}
+                    onClick={() =>
+                      task.chat && navigate(`/chat/${task.chat.id}`)
+                    }
+                  >
                     Abrir Chat
                   </button>
                 </div>
@@ -258,7 +264,9 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                       <p className={styles.proName}>{candidateName}</p>
                       <p className={styles.proMeta}>
                         ★
-                        <p className={styles.proMetaText}>{candidateRating} </p>
+                        <span className={styles.proMetaText}>
+                          {candidateRating}{" "}
+                        </span>
                       </p>
                     </div>
                   </div>

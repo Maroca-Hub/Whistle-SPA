@@ -1,37 +1,15 @@
 .container {
   min-height: 100dvh;
-  background:
-    radial-gradient(
-      circle at 98% 6%,
-      rgba(57, 79, 220, 0.22) 0 3px,
-      transparent 3px
-    ),
-    radial-gradient(
-      circle at 98% 12%,
-      rgba(57, 79, 220, 0.22) 0 3px,
-      transparent 3px
-    ),
-    radial-gradient(
-      circle at 98% 18%,
-      rgba(57, 79, 220, 0.22) 0 3px,
-      transparent 3px
-    ),
-    radial-gradient(
-      circle at 98% 24%,
-      rgba(57, 79, 220, 0.22) 0 3px,
-      transparent 3px
-    ),
-    var(--color-neutral-100);
   display: flex;
   justify-content: center;
   padding: 0;
+  background-color: var(--color-bg);
 }
 
 .panel {
   width: 100%;
-  max-width: 430px;
+  max-width: 1200px;
   min-height: 100dvh;
-  background-color: #f1f1f1;
   padding: 22px 26px 100px;
 }
 
@@ -114,7 +92,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
 }
 
 .editTitleWrap {
@@ -242,7 +219,7 @@
 }
 
 .passwordDropdown {
-  margin-top: -2px;
+  margin-top: 8px;
 }
 
 .passwordInputWrap {

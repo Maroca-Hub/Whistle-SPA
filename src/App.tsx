@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
+import { ChatPage } from "./pages/Chat";
 import { TaskDetailsPage } from "./pages/TaskDetails";
 import { Tasks } from "./pages/Tasks";
 import { UserProvider } from "./contexts/UserProvider";
@@ -10,6 +11,11 @@ import { UserProvider } from "./contexts/UserProvider";
 function getTaskIdFromPath(path: string): string | null {
   const detailsPathMatch = /^\/tasks\/([^/]+)$/.exec(path);
   return detailsPathMatch?.[1] ?? null;
+}
+
+function getChatIdFromPath(path: string): string | null {
+  const chatPathMatch = /^\/chat\/([^/]+)$/.exec(path);
+  return chatPathMatch?.[1] ?? null;
 }
 
 function App() {
@@ -55,6 +61,12 @@ function App() {
 
   if (taskId) {
     return <TaskDetailsPage taskId={taskId} />;
+  }
+
+  const chatId = getChatIdFromPath(path);
+
+  if (chatId) {
+    return <ChatPage chatId={chatId} />;
   }
 
   return <Login />;
