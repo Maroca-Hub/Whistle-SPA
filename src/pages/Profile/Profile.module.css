@@ -32,7 +32,7 @@
   max-width: 430px;
   min-height: 100dvh;
   background-color: #f1f1f1;
-  padding: 22px 26px 40px;
+  padding: 22px 26px 100px;
 }
 
 .profileHeader {
@@ -77,6 +77,10 @@
   justify-content: center;
 }
 
+.hiddenFileInput {
+  display: none;
+}
+
 .fullName {
   margin: 0;
   font-size: 2.2rem;
@@ -92,6 +96,14 @@
 }
 
 .editCard {
+  background: #f6f6f7;
+  border-radius: 22px;
+  border: 1px solid #e8e8ea;
+  padding: 22px 18px;
+}
+
+.passwordCard {
+  margin-top: 20px;
   background: #f6f6f7;
   border-radius: 22px;
   border: 1px solid #e8e8ea;
@@ -158,6 +170,18 @@
   color: #111827;
 }
 
+.inputStatic {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: #ececee;
+  padding: 14px 18px;
+  font-size: 1.05rem;
+  color: #4b5563;
+  margin: 0;
+}
+
 .input[readonly] {
   color: #4b5563;
 }
@@ -203,31 +227,51 @@
   cursor: not-allowed;
 }
 
-.passwordRow {
-  margin-top: 18px;
-  width: 100%;
-  height: 92px;
-  border-radius: 22px;
-  border: 1px solid #e8e8ea;
-  background: #f6f6f7;
-  padding: 0 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #141b23;
+.saveError {
+  margin: 10px 4px 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.passwordRowLeft {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.saveSuccess {
+  margin: 10px 4px 0;
+  color: #0f766e;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.passwordDropdown {
+  margin-top: -2px;
+}
+
+.passwordInputWrap {
+  position: relative;
+}
+
+.passwordInputWrap .input {
+  padding-right: 92px;
+}
+
+.passwordEyeButton {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
   color: #0a86af;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.passwordTitle {
-  color: #141b23;
-  font-size: 1.95rem;
-  line-height: 1;
+.passwordChevron {
+  transition: transform 0.2s ease;
+}
+
+.passwordChevronOpen {
+  transform: rotate(180deg);
 }
 
 .separator {
@@ -236,13 +280,9 @@
 }
 
 .logoutButton {
-  width: 100%;
   height: 72px;
-  border-radius: 9999px;
-  border: none;
-  background: #f3d8d5;
   color: #c7210b;
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   align-items: center;

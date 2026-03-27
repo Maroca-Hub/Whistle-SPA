@@ -13,6 +13,7 @@ export interface User {
 export interface UserContextValue {
   user: User | null;
   loadUser: () => Promise<void>;
+  updateUser: (nextUser: User) => void;
 }
 
 export const UserContext = createContext<UserContextValue | null>(null);

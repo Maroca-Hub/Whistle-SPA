@@ -80,10 +80,13 @@ async function request<T>(
   canRetryAuth = true,
 ): Promise<T> {
   const token = localStorage.getItem("access_token");
+  const isFormDataBody = init?.body instanceof FormData;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const headers: HeadersInit = {};
+
+  if (!isFormDataBody) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -119,20 +122,37 @@ async function request<T>(
     throw new ApiError(response.status, errorMessage);
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204 || response.status === 205) {
+    return undefined as T;
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return undefined as T;
+  }
 }
 
 export const api = {
   post: <T>(path: string, body: unknown) =>
-    request<T>(path, { method: "POST", body: JSON.stringify(body) }),
+    request<T>(path, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
 
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
 
   put: <T>(path: string, body: unknown) =>
-    request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+    request<T>(path, {
+      method: "PUT",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
 
   patch: <T>(path: string, body: unknown) =>
-    request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
+    request<T>(path, {
+      method: "PATCH",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
 
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };

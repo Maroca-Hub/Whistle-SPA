@@ -10,8 +10,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUser(data);
   }, []);
 
+  const updateUser = useCallback((nextUser: User) => {
+    setUser(nextUser);
+  }, []);
+
   return (
-    <UserContext.Provider value={{ user, loadUser }}>
+    <UserContext.Provider value={{ user, loadUser, updateUser }}>
       {children}
     </UserContext.Provider>
   );

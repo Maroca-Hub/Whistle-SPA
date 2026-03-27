@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import styles from "./Profile.module.css";
 import { useUser } from "../../hooks/useUser";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
+import { ApiError, authService } from "../../services/auth.service";
 
 function navigate(path: string) {
   window.history.pushState({}, "", path);
@@ -10,61 +11,224 @@ function navigate(path: string) {
 }
 
 export function Profile() {
-  const { user, loadUser } = useUser();
+  const { user, loadUser, updateUser } = useUser();
   const [isEditing, setIsEditing] = useState(false);
-  const [committedProfile, setCommittedProfile] = useState<{
-    firstName: string;
-    lastName: string;
-  } | null>(null);
   const [draftProfile, setDraftProfile] = useState<{
     firstName: string;
     lastName: string;
   } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
-  const firstName =
-    draftProfile?.firstName ??
-    committedProfile?.firstName ??
-    user?.first_name ??
-    "";
-  const lastName =
-    draftProfile?.lastName ??
-    committedProfile?.lastName ??
-    user?.last_name ??
-    "";
-  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const currentFirstName = user?.first_name ?? "";
+  const currentLastName = user?.last_name ?? "";
+  const fullName = [currentFirstName, currentLastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const profilePictureSrc = user?.profile_picture ?? "";
 
   const handleToggleEdit = () => {
     if (isEditing) {
       setIsEditing(false);
       setDraftProfile(null);
+      setSaveError(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
       return;
     }
 
-    setDraftProfile({ firstName, lastName });
+    setDraftProfile({
+      firstName: currentFirstName,
+      lastName: currentLastName,
+    });
+    setSaveError(null);
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setDraftProfile(null);
+    setSaveError(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
     setIsEditing(false);
   };
 
-  const handleSave = () => {
-    if (draftProfile) {
-      setCommittedProfile(draftProfile);
+  const handleProfilePictureClick = () => {
+    if (!isEditing) {
+      setDraftProfile({
+        firstName: currentFirstName,
+        lastName: currentLastName,
+      });
+      setIsEditing(true);
     }
-    setDraftProfile(null);
-    setIsEditing(false);
+
+    fileInputRef.current?.click();
+  };
+
+  const handleProfilePictureChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    if (file.size > MAX_FILE_SIZE) {
+      setSaveError("A foto de perfil deve ter no máximo 5MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploadingPicture(true);
+    setSaveError(null);
+
+    try {
+      const updatedUser = await authService.updateMe({
+        firstName: currentFirstName,
+        lastName: currentLastName,
+        profilePicture: file,
+      });
+
+      updateUser(updatedUser);
+    } catch {
+      setSaveError("Não foi possível atualizar a foto de perfil.");
+    } finally {
+      setIsUploadingPicture(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleSave = async () => {
+    if (!draftProfile || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const updatedUser = await authService.updateMe({
+        firstName: draftProfile.firstName,
+        lastName: draftProfile.lastName,
+      });
+
+      updateUser(updatedUser);
+      setDraftProfile(null);
+      setIsEditing(false);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSaveError(error.message);
+      } else {
+        setSaveError("Erro ao salvar perfil.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     navigate("/");
+  };
+
+  const resetPasswordForm = () => {
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const handleTogglePassword = () => {
+    if (isPasswordOpen) {
+      resetPasswordForm();
+      setIsPasswordOpen(false);
+      return;
+    }
+
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    setIsPasswordOpen(true);
+  };
+
+  const handleCancelPassword = () => {
+    resetPasswordForm();
+    setIsPasswordOpen(false);
+  };
+
+  const handleSavePassword = async () => {
+    if (isSavingPassword) {
+      return;
+    }
+
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      setPasswordError("Preencha todos os campos de senha.");
+      setPasswordSuccess(null);
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("A nova senha e a confirmação precisam ser iguais.");
+      setPasswordSuccess(null);
+      return;
+    }
+
+    setIsSavingPassword(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    try {
+      await authService.updatePassword({
+        oldPassword,
+        newPassword,
+      });
+
+      setPasswordSuccess("Senha atualizada com sucesso.");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setShowOldPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+    } catch {
+      setPasswordError("Não foi possível atualizar a senha.");
+    } finally {
+      setIsSavingPassword(false);
+    }
   };
 
   return (
@@ -74,13 +238,15 @@ export function Profile() {
         <section className={styles.profileHeader}>
           <div className={styles.mainAvatarWrap}>
             <div className={styles.mainAvatar}>
-              <img src={user?.profile_picture} alt="" aria-hidden="true" />
+              <img src={profilePictureSrc} alt="" aria-hidden="true" />
             </div>
 
             <button
               type="button"
               className={styles.cameraButton}
               aria-label="Alterar foto"
+              onClick={handleProfilePictureClick}
+              disabled={isUploadingPicture}
             >
               <svg
                 width="20"
@@ -105,25 +271,23 @@ export function Profile() {
                 />
               </svg>
             </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className={styles.hiddenFileInput}
+              onChange={handleProfilePictureChange}
+            />
           </div>
 
           <h2 className={styles.fullName}>{fullName || "Usuário"}</h2>
           <p className={styles.email}>{user?.email ?? ""}</p>
         </section>
+
         <section className={styles.editCard}>
           <div className={styles.editHeader}>
             <div className={styles.editTitleWrap}>
-              <span className={styles.editIcon} aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M16 4L20 8L9 19H5V15L16 4Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
               <h3 className={styles.editTitle}>Editar perfil</h3>
             </div>
 
@@ -151,105 +315,227 @@ export function Profile() {
             </button>
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label} htmlFor="firstName">
-              Nome
-            </label>
-            <input
-              id="firstName"
-              className={styles.input}
-              value={firstName}
-              onChange={(event) =>
-                setDraftProfile((current) => ({
-                  firstName: event.target.value,
-                  lastName: current?.lastName ?? lastName,
-                }))
-              }
-              readOnly={!isEditing}
-            />
-          </div>
+          {isEditing ? (
+            <>
+              <div className={styles.formField}>
+                <label className={styles.label} htmlFor="firstName">
+                  Nome
+                </label>
+                <input
+                  id="firstName"
+                  className={styles.input}
+                  value={draftProfile?.firstName ?? ""}
+                  onChange={(event) =>
+                    setDraftProfile((current) => ({
+                      firstName: event.target.value,
+                      lastName: current?.lastName ?? "",
+                    }))
+                  }
+                />
+              </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label} htmlFor="lastName">
-              Sobrenome
-            </label>
-            <input
-              id="lastName"
-              className={styles.input}
-              value={lastName}
-              onChange={(event) =>
-                setDraftProfile((current) => ({
-                  firstName: current?.firstName ?? firstName,
-                  lastName: event.target.value,
-                }))
-              }
-              readOnly={!isEditing}
-            />
-          </div>
+              <div className={styles.formField}>
+                <label className={styles.label} htmlFor="lastName">
+                  Sobrenome
+                </label>
+                <input
+                  id="lastName"
+                  className={styles.input}
+                  value={draftProfile?.lastName ?? ""}
+                  onChange={(event) =>
+                    setDraftProfile((current) => ({
+                      firstName: current?.firstName ?? "",
+                      lastName: event.target.value,
+                    }))
+                  }
+                />
+              </div>
 
-          <div className={styles.formActions}>
-            <button
-              type="button"
-              className={styles.saveButton}
-              onClick={handleSave}
-              disabled={!isEditing}
-            >
-              Salvar alterações
-            </button>
-            <button
-              type="button"
-              className={styles.cancelButton}
-              onClick={handleCancel}
-              disabled={!isEditing}
-            >
-              Cancelar
-            </button>
-          </div>
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Salvando..." : "Salvar"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </button>
+              </div>
+
+              {saveError && <p className={styles.saveError}>{saveError}</p>}
+            </>
+          ) : (
+            <>
+              <div className={styles.formField}>
+                <label className={styles.label}>Nome</label>
+                <p className={styles.inputStatic}>{currentFirstName || "-"}</p>
+              </div>
+
+              <div className={styles.formField}>
+                <label className={styles.label}>Sobrenome</label>
+                <p className={styles.inputStatic}>{currentLastName || "-"}</p>
+              </div>
+            </>
+          )}
         </section>
-        <button type="button" className={styles.passwordRow}>
-          <span className={styles.passwordRowLeft}>
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M7 11V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V11"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <rect
-                x="5"
-                y="11"
-                width="14"
-                height="10"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-            <span className={styles.passwordTitle}>Alterar senha</span>
-          </span>
 
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M6 9L12 15L18 9"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <section className={styles.passwordCard}>
+          <div className={styles.editHeader}>
+            <div className={styles.editTitleWrap}>
+              <h3 className={styles.editTitle}>Alterar senha</h3>
+            </div>
+
+            <button
+              type="button"
+              className={styles.editToggleButton}
+              onClick={handleTogglePassword}
+              aria-expanded={isPasswordOpen}
+              aria-controls="password-dropdown"
+              aria-label="Abrir ou fechar alteração de senha"
+            >
+              <svg
+                className={`${styles.passwordChevron} ${isPasswordOpen ? styles.passwordChevronOpen : ""}`}
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 9L12 15L18 9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {isPasswordOpen && (
+            <div id="password-dropdown" className={styles.passwordDropdown}>
+              <div className={styles.formField}>
+                <label className={styles.label} htmlFor="oldPassword">
+                  Senha atual
+                </label>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    id="oldPassword"
+                    className={styles.input}
+                    type={showOldPassword ? "text" : "password"}
+                    value={oldPassword}
+                    onChange={(event) => setOldPassword(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordEyeButton}
+                    onClick={() => setShowOldPassword((current) => !current)}
+                    aria-label={
+                      showOldPassword
+                        ? "Ocultar senha atual"
+                        : "Mostrar senha atual"
+                    }
+                  >
+                    {showOldPassword ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.formField}>
+                <label className={styles.label} htmlFor="newPassword">
+                  Nova senha
+                </label>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    id="newPassword"
+                    className={styles.input}
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordEyeButton}
+                    onClick={() => setShowNewPassword((current) => !current)}
+                    aria-label={
+                      showNewPassword
+                        ? "Ocultar nova senha"
+                        : "Mostrar nova senha"
+                    }
+                  >
+                    {showNewPassword ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.formField}>
+                <label className={styles.label} htmlFor="confirmNewPassword">
+                  Repita a nova senha
+                </label>
+                <div className={styles.passwordInputWrap}>
+                  <input
+                    id="confirmNewPassword"
+                    className={styles.input}
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmNewPassword}
+                    onChange={(event) =>
+                      setConfirmNewPassword(event.target.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordEyeButton}
+                    onClick={() =>
+                      setShowConfirmPassword((current) => !current)
+                    }
+                    aria-label={
+                      showConfirmPassword
+                        ? "Ocultar confirmação de senha"
+                        : "Mostrar confirmação de senha"
+                    }
+                  >
+                    {showConfirmPassword ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  onClick={handleSavePassword}
+                  disabled={isSavingPassword}
+                >
+                  {isSavingPassword ? "Salvando..." : "Salvar"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={handleCancelPassword}
+                  disabled={isSavingPassword}
+                >
+                  Cancelar
+                </button>
+              </div>
+
+              {passwordError && (
+                <p className={styles.saveError}>{passwordError}</p>
+              )}
+              {passwordSuccess && (
+                <p className={styles.saveSuccess}>{passwordSuccess}</p>
+              )}
+            </div>
+          )}
+        </section>
+
         <div className={styles.separator} />
         <button
           type="button"
