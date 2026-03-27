@@ -122,7 +122,296 @@ export function Home() {
             ))}
           </div>
         </section>
+
+        <section className={styles.activeTaskSection}>
+          <h2 className={styles.sectionTitle}>Tarefa ativa</h2>
+
+          <article className={styles.taskCard}>
+            <div className={styles.taskCardLeft}>
+              <div className={styles.taskIcon} aria-hidden="true">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="14"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M8 10H16"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M8 14H12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className={styles.taskCardContent}>
+              <div className={styles.taskCardHeader}>
+                <h3 className={styles.taskTitle}>Redesign de Landing Page</h3>
+                <span className={styles.taskBadge}>ABERTO</span>
+              </div>
+
+              <p className={styles.taskStatus}>Status: Recebendo propostas</p>
+
+              <div className={styles.taskProposals}>
+                <div className={styles.proposalAvatars} aria-hidden="true">
+                  <div className={styles.proposalAvatar}>
+                    <img src="https://i.pravatar.cc/64?img=12" alt="" />
+                  </div>
+                  <div className={styles.proposalAvatar}>
+                    <img src="https://i.pravatar.cc/64?img=29" alt="" />
+                  </div>
+                  <div className={styles.proposalAvatar}>
+                    <img src="https://i.pravatar.cc/64?img=45" alt="" />
+                  </div>
+                </div>
+
+                <button type="button" className={styles.proposalsLink}>
+                  <span className={styles.proposalsCount}>12 propostas</span>
+                  <span className={styles.proposalsText}>recebidas</span>
+                </button>
+              </div>
+
+              <button type="button" className={styles.taskLink}>
+                Gerenciar tarefa
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 6L15 12L9 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <section className={styles.suggestionsSection}>
+          <h2 className={styles.sectionTitle}>Sugestões para você</h2>
+
+          <div className={styles.suggestionsGrid}>
+            <article className={styles.suggestionCard}>
+              <div className={styles.suggestionIcon} aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 16L10 11L13 14L19 8"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M15 8H19V12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3 className={styles.suggestionTitle}>
+                Consultoria de Negócios
+              </h3>
+              <button type="button" className={styles.suggestionLink}>
+                Explorar especialistas
+              </button>
+            </article>
+
+            <article
+              className={`${styles.suggestionCard} ${styles.suggestionCardLight}`}
+            >
+              <div className={styles.suggestionIcon} aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 4L18 20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M18 4L6 20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M4 8H10"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M14 16H20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <h3 className={styles.suggestionTitle}>Tradução Técnica</h3>
+              <p className={styles.suggestionPrice}>A partir de R$ 45,00/pág</p>
+            </article>
+
+            <article
+              className={`${styles.suggestionCard} ${styles.suggestionCardBlue}`}
+            >
+              <div className={styles.suggestionBlueContent}>
+                <div>
+                  <h3 className={styles.suggestionTitleBlue}>
+                    Marketing Digital
+                  </h3>
+                  <p className={styles.suggestionDescBlue}>
+                    Impulsione suas vendas
+                  </p>
+                </div>
+
+                <div className={styles.suggestionRocket} aria-hidden="true">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M14 4L20 10L12 18L6 12L14 4Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="14" cy="10" r="1.6" fill="currentColor" />
+                  </svg>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
       </section>
+
+      <button type="button" className={styles.fab} aria-label="Criar tarefa">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 5V19"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <path
+            d="M5 12H19"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+
+      <nav className={styles.bottomNav}>
+        <button
+          type="button"
+          className={`${styles.navItem} ${styles.navItemActive}`}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 10L12 3L21 10V20H3V10Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className={styles.navLabel}>Home</span>
+        </button>
+
+        <button type="button" className={styles.navItem}>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7 3V6M17 3V6M4 9H20M6 21H18C19.1046 21 20 20.1046 20 19V7C20 5.89543 19.1046 5 18 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className={styles.navLabel}>Tarefas</span>
+        </button>
+
+        <button type="button" className={styles.navItem}>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <path
+              d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className={styles.navLabel}>Perfil</span>
+        </button>
+      </nav>
     </main>
   );
 }
