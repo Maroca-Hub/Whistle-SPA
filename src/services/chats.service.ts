@@ -35,9 +35,10 @@ export interface ChatMessage {
 
 export const chatsService = {
   getChatDetails: (chatId: string) => api.get<ChatDetails>(`/chats/${chatId}`),
-  getChatMessages: (chatId: string) =>
-    api.get<ChatMessage[]>(`/chats/${chatId}/messages`),
-  // Backend currently returns chat payload on send, so caller should refetch messages.
+  getChatMessages: (chatId: string, page = 1, size = 20) =>
+    api.get<ChatMessage[]>(
+      `/chats/${chatId}/messages?page=${page}&size=${size}`,
+    ),
   sendMessage: (chatId: string, content: string) =>
     api.post<ChatDetails>(`/chats/${chatId}/messages`, { content }),
 };

@@ -1,18 +1,20 @@
 .container {
-  min-height: 100dvh;
+  height: 100dvh;
 
   display: flex;
   justify-content: center;
   padding: 0;
   background-color: var(--color-bg);
+  overflow: hidden;
 }
 
 .panel {
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
   padding: 22px 20px 160px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* Header */
@@ -143,6 +145,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .loadOlderButton {

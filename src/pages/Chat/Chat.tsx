@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 import { useUser } from "../../hooks/useUser";
 import {
@@ -11,6 +11,8 @@ import styles from "./Chat.module.css";
 interface ChatPageProps {
   chatId: string;
 }
+
+const PAGE_SIZE = 20;
 
 function navigate(path: string) {
   window.history.pushState({}, "", path);
@@ -30,11 +32,20 @@ export function ChatPage({ chatId }: ChatPageProps) {
   const [chat, setChat] = useState<ChatDetails | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesWrapperRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToBottomRef = useRef(false);
+  const scrollRestoreRef = useRef<{
+    prevHeight: number;
+    prevTop: number;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,14 +53,18 @@ export function ChatPage({ chatId }: ChatPageProps) {
     const run = async () => {
       setIsLoading(true);
       setError(null);
+      setCurrentPage(1);
+      setHasMoreMessages(true);
       try {
         const [chatData, messagesData] = await Promise.all([
           chatsService.getChatDetails(chatId),
-          chatsService.getChatMessages(chatId),
+          chatsService.getChatMessages(chatId, 1, PAGE_SIZE),
         ]);
         if (isMounted) {
           setChat(chatData);
           setMessages([...messagesData].reverse());
+          setHasMoreMessages(messagesData.length === PAGE_SIZE);
+          shouldScrollToBottomRef.current = true;
         }
       } catch {
         if (isMounted) setError("Não foi possível carregar o chat.");
@@ -64,6 +79,23 @@ export function ChatPage({ chatId }: ChatPageProps) {
     };
   }, [chatId]);
 
+  useEffect(() => {
+    const container = messagesWrapperRef.current;
+    if (!container) return;
+
+    if (scrollRestoreRef.current) {
+      const { prevHeight, prevTop } = scrollRestoreRef.current;
+      container.scrollTop = container.scrollHeight - prevHeight + prevTop;
+      scrollRestoreRef.current = null;
+      return;
+    }
+
+    if (shouldScrollToBottomRef.current) {
+      container.scrollTop = container.scrollHeight;
+      shouldScrollToBottomRef.current = false;
+    }
+  }, [messages]);
+
   const currentUserId = user?.id || chat?.customer_id || chat?.executor_id;
 
   const partner = chat
@@ -76,6 +108,69 @@ export function ChatPage({ chatId }: ChatPageProps) {
     ? `${partner.first_name} ${partner.last_name}`.trim()
     : "";
   const canSendMessages = chat?.task_status === "IN_PROGRESS";
+
+  const loadOlderMessages = useCallback(async () => {
+    if (isLoading || isLoadingOlder || !hasMoreMessages) return;
+
+    const container = messagesWrapperRef.current;
+    const prevHeight = container?.scrollHeight ?? 0;
+    const prevTop = container?.scrollTop ?? 0;
+    const nextPage = currentPage + 1;
+
+    setIsLoadingOlder(true);
+    try {
+      const olderPage = await chatsService.getChatMessages(
+        chatId,
+        nextPage,
+        PAGE_SIZE,
+      );
+      const olderMessages = [...olderPage].reverse();
+
+      let appendedCount = 0;
+
+      scrollRestoreRef.current = { prevHeight, prevTop };
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((msg) => msg.id));
+        const toPrepend = olderMessages.filter(
+          (msg) => !existingIds.has(msg.id),
+        );
+        appendedCount = toPrepend.length;
+        return [...toPrepend, ...prev];
+      });
+
+      if (appendedCount === 0) {
+        setHasMoreMessages(false);
+        return;
+      }
+
+      setCurrentPage(nextPage);
+      setHasMoreMessages(olderPage.length === PAGE_SIZE);
+    } catch {
+      setSendError("Não foi possível carregar mensagens antigas.");
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }, [chatId, currentPage, hasMoreMessages, isLoading, isLoadingOlder]);
+
+  useEffect(() => {
+    const container = messagesWrapperRef.current;
+    if (!container) return;
+    if (isLoading || isLoadingOlder || !hasMoreMessages) return;
+
+    // If current content doesn't fill the viewport, keep loading older pages.
+    if (container.scrollHeight <= container.clientHeight + 40) {
+      void loadOlderMessages();
+    }
+  }, [messages, hasMoreMessages, isLoading, isLoadingOlder, loadOlderMessages]);
+
+  const handleMessagesScroll = () => {
+    const container = messagesWrapperRef.current;
+    if (!container) return;
+
+    if (container.scrollTop <= 60) {
+      void loadOlderMessages();
+    }
+  };
 
   const handleSend = async () => {
     const text = inputText.trim();
@@ -96,9 +191,21 @@ export function ChatPage({ chatId }: ChatPageProps) {
 
     try {
       await chatsService.sendMessage(chatId, text);
-      const updatedMessages = await chatsService.getChatMessages(chatId);
-      setMessages([...updatedMessages].reverse());
+      const latestPage = await chatsService.getChatMessages(
+        chatId,
+        1,
+        PAGE_SIZE,
+      );
+      const latestMessages = [...latestPage].reverse();
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((msg) => msg.id));
+        const toAppend = latestMessages.filter(
+          (msg) => !existingIds.has(msg.id),
+        );
+        return [...prev, ...toAppend];
+      });
       setInputText("");
+      shouldScrollToBottomRef.current = true;
       inputRef.current?.focus();
     } catch {
       setSendError("Não foi possível enviar a mensagem.");
@@ -155,7 +262,14 @@ export function ChatPage({ chatId }: ChatPageProps) {
         )}
 
         {!isLoading && !error && (
-          <div className={styles.messagesWrapper}>
+          <div
+            ref={messagesWrapperRef}
+            className={styles.messagesWrapper}
+            onScroll={handleMessagesScroll}
+          >
+            {isLoadingOlder && (
+              <p className={styles.feedback}>Carregando mensagens antigas...</p>
+            )}
             <div className={styles.messageList}>
               {messages.map((msg) => {
                 const fromMe = msg.sender_id === currentUserId;
