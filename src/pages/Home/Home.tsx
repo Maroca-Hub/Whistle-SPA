@@ -5,6 +5,11 @@ import { skillsService, type Skill } from "../../services/skills.service";
 
 const TASK_LIST_SIZE = 20;
 
+function navigate(path: string) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -521,7 +526,11 @@ export function Home() {
           <span className={styles.navLabel}>Tarefas</span>
         </button>
 
-        <button type="button" className={styles.navItem}>
+        <button
+          type="button"
+          className={styles.navItem}
+          onClick={() => navigate("/profile")}
+        >
           <svg
             width="20"
             height="20"

@@ -2,6 +2,7 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
+import { Profile } from "./pages/Profile";
 import { UserProvider } from "./contexts/UserProvider";
 
 function App() {
@@ -33,6 +34,10 @@ function App() {
 
   if (path === "/home") {
     return <Home />;
+  }
+
+  if (path === "/profile") {
+    return <Profile />;
   }
 
   return <Login />;

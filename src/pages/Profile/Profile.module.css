@@ -1,0 +1,328 @@
+.container {
+  min-height: 100dvh;
+  background: #f1f1f3;
+  display: flex;
+  justify-content: center;
+  padding: 0 0 100px;
+}
+
+.panel {
+  width: 100%;
+  max-width: 430px;
+  padding: 22px 24px 24px;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 2.9rem;
+  line-height: 1;
+  color: #0b88b3;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconButton {
+  width: 46px;
+  height: 46px;
+  border-radius: 9999px;
+  border: none;
+  background: #ececec;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.topAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileHeader {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.mainAvatarWrap {
+  display: inline-flex;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.mainAvatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 4px solid #f3f4f6;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.12);
+}
+
+.mainAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cameraButton {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  border: 3px solid #f3f4f6;
+  background: #0883ab;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullName {
+  margin: 0;
+  font-size: 2.2rem;
+  line-height: 1.1;
+  color: #111827;
+  font-weight: 700;
+}
+
+.email {
+  margin: 6px 0 0;
+  font-size: 1.05rem;
+  color: #374151;
+}
+
+.editCard {
+  background: #f6f6f7;
+  border-radius: 22px;
+  border: 1px solid #e8e8ea;
+  padding: 22px 18px;
+}
+
+.editHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.editTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editIcon {
+  color: #0a86af;
+  display: flex;
+}
+
+.editTitle {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1;
+  color: #141b23;
+}
+
+.editToggleButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: #e5eef2;
+  color: #0a86af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.formField + .formField {
+  margin-top: 12px;
+}
+
+.label {
+  display: block;
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 54px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: #ececee;
+  padding: 0 18px;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.input[readonly] {
+  color: #4b5563;
+}
+
+.formActions {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.saveButton {
+  height: 50px;
+  border-radius: 9999px;
+  border: none;
+  padding: 0 22px;
+  background: #0883ab;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saveButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  height: 50px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.cancelButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.passwordRow {
+  margin-top: 18px;
+  width: 100%;
+  height: 92px;
+  border-radius: 22px;
+  border: 1px solid #e8e8ea;
+  background: #f6f6f7;
+  padding: 0 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #141b23;
+}
+
+.passwordRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0a86af;
+}
+
+.passwordTitle {
+  color: #141b23;
+  font-size: 1.95rem;
+  line-height: 1;
+}
+
+.separator {
+  margin: 18px 2px;
+  border-top: 1px solid #dbdde1;
+}
+
+.logoutButton {
+  width: 100%;
+  height: 72px;
+  border-radius: 9999px;
+  border: none;
+  background: #f3d8d5;
+  color: #c7210b;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 40;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.navItemActive {
+  color: #394fdc;
+}
+
+.navLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+@media (max-width: 420px) {
+  .greeting {
+    font-size: 2.2rem;
+  }
+
+  .fullName {
+    font-size: 1.9rem;
+  }
+
+  .editTitle {
+    font-size: 1.7rem;
+  }
+
+  .passwordTitle {
+    font-size: 1.6rem;
+  }
+}
