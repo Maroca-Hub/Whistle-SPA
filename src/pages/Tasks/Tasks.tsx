@@ -53,11 +53,7 @@ function getStatusConfig(status: string) {
 }
 
 function getTagText(task: CustomerTask): string {
-  if (task.executor_id) {
-    return "1 Profissional";
-  }
-
-  return `${task.pending_bids_count} Propostas`;
+  return `${task.pending_bids_count} proposta${task.pending_bids_count !== 1 ? "s" : ""}`;
 }
 
 function getTaskIcon(task: CustomerTask) {
@@ -208,11 +204,12 @@ export function Tasks() {
                     >
                       {status.label}
                     </span>
-                    {task.status === "PENDING" && (
-                      <span className={styles.proposalsBadge}>
-                        {getTagText(task)}
-                      </span>
-                    )}
+                    {task.status === "PENDING" &&
+                      task.pending_bids_count > 0 && (
+                        <span className={styles.proposalsBadge}>
+                          {getTagText(task)}
+                        </span>
+                      )}
                   </div>
                 </div>
 

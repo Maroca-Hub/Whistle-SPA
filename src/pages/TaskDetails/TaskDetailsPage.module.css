@@ -302,6 +302,31 @@
   border: 1px solid #cfe3ea;
   border-radius: 24px;
   padding: 20px;
+  margin-bottom: 12px;
+}
+
+.reviewCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.reviewerName {
+  margin: 0;
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.reviewerRole {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0b83ac;
+  background: #d8eef5;
+  border-radius: 9999px;
+  padding: 3px 10px;
 }
 
 .reviewHint {

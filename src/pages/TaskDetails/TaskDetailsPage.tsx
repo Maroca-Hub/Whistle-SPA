@@ -107,8 +107,6 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
     };
   }, [taskId]);
 
-  const review = task?.reviews?.[0] ?? null;
-
   const handleSubmitReview = useCallback(async () => {
     if (reviewRating === 0) {
       setReviewError("Selecione uma nota.");
@@ -209,7 +207,49 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               </div>
             </section>
 
-            {isPendingTask ? (
+            {task.candidate ? (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Profissional</h3>
+                  <button type="button" className={styles.chatButton}>
+                    Abrir Chat
+                  </button>
+                </div>
+
+                <article className={styles.proCard}>
+                  <div className={styles.proInfo}>
+                    <div className={styles.proAvatar}>
+                      <img
+                        src={task.candidate?.profile_picture}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div>
+                      <p className={styles.proName}>{candidateName}</p>
+                      <p className={styles.proMeta}>★ {candidateRating}</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.priceBlock}>
+                    <p className={styles.priceLabel}>VALOR</p>
+                    <p className={styles.priceValue}>
+                      {formatCurrency(task.candidate?.bid?.amount ?? 0)}
+                    </p>
+                  </div>
+                </article>
+              </section>
+            ) : (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Profissional</h3>
+                </div>
+
+                <span>Nenhum profissional selecionado.</span>
+              </section>
+            )}
+
+            {isPendingTask && (
               <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>Candidatos</h3>
 
@@ -268,54 +308,41 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                   )}
                 </div>
               </section>
-            ) : (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3 className={styles.sectionTitle}>Profissional</h3>
-                  <button type="button" className={styles.chatButton}>
-                    Abrir Chat
-                  </button>
-                </div>
-
-                <article className={styles.proCard}>
-                  <div className={styles.proInfo}>
-                    <div className={styles.proAvatar}>
-                      <img
-                        src={task.candidate?.profile_picture}
-                        alt=""
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div>
-                      <p className={styles.proName}>{candidateName}</p>
-                      <p className={styles.proMeta}>★ {candidateRating}</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.priceBlock}>
-                    <p className={styles.priceLabel}>VALOR</p>
-                    <p className={styles.priceValue}>
-                      {formatCurrency(task.candidate?.bid?.amount ?? 0)}
-                    </p>
-                  </div>
-                </article>
-              </section>
             )}
 
             {task.status === "COMPLETED" && (
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>
-                  {isReviewed ? "Avaliação" : "Avaliar Serviço"}
-                </h3>
-                <article className={styles.reviewCard}>
-                  {review ? (
-                    <>
+                <h3 className={styles.sectionTitle}>Avaliações</h3>
+
+                {task.reviews.map((rev) => {
+                  const isCustomerReview = rev.reviewer_id === task.customer_id;
+                  const reviewerName = isCustomerReview
+                    ? fullName(
+                        task.customer.first_name,
+                        task.customer.last_name,
+                      )
+                    : task.candidate
+                      ? fullName(
+                          task.candidate.first_name,
+                          task.candidate.last_name,
+                        )
+                      : "Profissional";
+
+                  return (
+                    <article key={rev.id} className={styles.reviewCard}>
+                      <div className={styles.reviewCardHeader}>
+                        <p className={styles.reviewerName}>{reviewerName}</p>
+                        <p className={styles.reviewerRole}>
+                          {isCustomerReview ? "Cliente" : "Profissional"}
+                        </p>
+                      </div>
+
                       <div className={styles.reviewStarsDisplay}>
                         {[1, 2, 3, 4, 5].map((n) => (
                           <span
                             key={n}
                             className={
-                              n <= review.rating
+                              n <= rev.rating
                                 ? styles.starFilled
                                 : styles.starEmpty
                             }
@@ -324,73 +351,75 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                           </span>
                         ))}
                       </div>
+
                       <p className={styles.reviewDate}>
-                        {formatDateLabel(review.created_at)}
+                        {formatDateLabel(rev.created_at)}
                       </p>
-                      {review.comment && (
+
+                      {rev.comment && (
                         <p className={styles.reviewExistingComment}>
-                          {review.comment}
+                          {rev.comment}
                         </p>
                       )}
-                    </>
-                  ) : (
-                    <>
-                      <p className={styles.reviewHint}>
-                        Como foi sua experiência com{" "}
-                        {task.candidate
-                          ? fullName(
-                              task.candidate.first_name,
-                              task.candidate.last_name,
-                            )
-                          : "profissional"}
-                        ?
-                      </p>
+                    </article>
+                  );
+                })}
 
-                      <div className={styles.starsInteractive}>
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <button
-                            key={n}
-                            type="button"
-                            aria-label={`${n} estrelas`}
-                            className={
-                              n <= (reviewHover || reviewRating)
-                                ? styles.starFilled
-                                : styles.starEmpty
-                            }
-                            onClick={() => setReviewRating(n)}
-                            onMouseEnter={() => setReviewHover(n)}
-                            onMouseLeave={() => setReviewHover(0)}
-                          >
-                            ★
-                          </button>
-                        ))}
-                      </div>
+                {!isReviewed && (
+                  <article className={styles.reviewCard}>
+                    <p className={styles.reviewHint}>
+                      Como foi sua experiência com{" "}
+                      {task.candidate
+                        ? fullName(
+                            task.candidate.first_name,
+                            task.candidate.last_name,
+                          )
+                        : "o profissional"}
+                      ?
+                    </p>
 
-                      <textarea
-                        className={styles.reviewInput}
-                        placeholder="Conte-nos o que achou do serviço prestado..."
-                        value={reviewComment}
-                        maxLength={500}
-                        onChange={(e) => setReviewComment(e.target.value)}
-                      />
+                    <div className={styles.starsInteractive}>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          aria-label={`${n} estrelas`}
+                          className={
+                            n <= (reviewHover || reviewRating)
+                              ? styles.starFilled
+                              : styles.starEmpty
+                          }
+                          onClick={() => setReviewRating(n)}
+                          onMouseEnter={() => setReviewHover(n)}
+                          onMouseLeave={() => setReviewHover(0)}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
 
-                      {reviewError && (
-                        <p className={styles.reviewError}>{reviewError}</p>
-                      )}
+                    <textarea
+                      className={styles.reviewInput}
+                      placeholder="Conte-nos o que achou do serviço prestado..."
+                      value={reviewComment}
+                      maxLength={500}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                    />
 
-                      <button
-                        type="button"
-                        className={styles.submitReviewButton}
-                        disabled={isSubmittingReview}
-                        onClick={handleSubmitReview}
-                      >
-                        {isSubmittingReview
-                          ? "Enviando..."
-                          : "Enviar Avaliação"}
-                      </button>
-                    </>
-                  )}
-                </article>
+                    {reviewError && (
+                      <p className={styles.reviewError}>{reviewError}</p>
+                    )}
+
+                    <button
+                      type="button"
+                      className={styles.submitReviewButton}
+                      disabled={isSubmittingReview}
+                      onClick={handleSubmitReview}
+                    >
+                      {isSubmittingReview ? "Enviando..." : "Enviar Avaliação"}
+                    </button>
+                  </article>
+                )}
               </section>
             )}
 

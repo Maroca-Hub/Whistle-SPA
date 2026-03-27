@@ -488,7 +488,7 @@ export function Home() {
               <input
                 className={styles.modalSearchInput}
                 type="text"
-                placeholder="Busque por habilidades (ex: Python,...)"
+                placeholder="Busque por serviços"
                 value={taskSearch}
                 onChange={(event) => setTaskSearch(event.target.value)}
               />

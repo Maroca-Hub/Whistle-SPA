@@ -490,7 +490,7 @@
   background: #f6f6f7;
   border-radius: 28px 28px 0 0;
   padding: 12px 18px calc(90px + env(safe-area-inset-bottom));
-  max-height: min(78dvh, 760px);
+  height: min(78dvh, 760px);
   display: flex;
   flex-direction: column;
   animation: modalSheetIn 0.28s cubic-bezier(0.22, 0.8, 0.2, 1) forwards;
