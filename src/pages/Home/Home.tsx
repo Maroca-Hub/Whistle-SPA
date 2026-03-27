@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type UIEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type UIEvent } from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
 import { skillsService, type Skill } from "../../services/skills.service";
@@ -97,7 +91,8 @@ export function Home() {
       const target = event.currentTarget;
       const threshold = 48;
       const reachedBottom =
-        target.scrollTop + target.clientHeight >= target.scrollHeight - threshold;
+        target.scrollTop + target.clientHeight >=
+        target.scrollHeight - threshold;
 
       if (!reachedBottom || isLoadingTasks || !hasMoreTasks) {
         return;
@@ -579,7 +574,10 @@ export function Home() {
               />
             </div>
 
-            <div className={styles.modalTaskList} onScroll={handleTaskListScroll}>
+            <div
+              className={styles.modalTaskList}
+              onScroll={handleTaskListScroll}
+            >
               {filteredTaskItems.map((task) => (
                 <article key={task.id} className={styles.modalTaskCard}>
                   <div className={styles.modalTaskAvatar}>
@@ -588,7 +586,9 @@ export function Home() {
 
                   <div className={styles.modalTaskTextBlock}>
                     <h3 className={styles.modalTaskTitle}>{task.name}</h3>
-                    <p className={styles.modalTaskDescription}>{task.description}</p>
+                    <p className={styles.modalTaskDescription}>
+                      {task.description}
+                    </p>
                   </div>
 
                   <div className={styles.modalTaskChevron} aria-hidden="true">
@@ -619,13 +619,22 @@ export function Home() {
                 <p className={styles.modalStatusText}>{taskListError}</p>
               )}
 
-              {!isLoadingTasks && !taskListError && filteredTaskItems.length === 0 && (
-                <p className={styles.modalStatusText}>Nenhuma tarefa encontrada.</p>
-              )}
+              {!isLoadingTasks &&
+                !taskListError &&
+                filteredTaskItems.length === 0 && (
+                  <p className={styles.modalStatusText}>
+                    Nenhuma tarefa encontrada.
+                  </p>
+                )}
 
-              {!isLoadingTasks && !taskListError && !hasMoreTasks && taskItems.length > 0 && (
-                <p className={styles.modalStatusText}>Você chegou ao fim da lista.</p>
-              )}
+              {!isLoadingTasks &&
+                !taskListError &&
+                !hasMoreTasks &&
+                taskItems.length > 0 && (
+                  <p className={styles.modalStatusText}>
+                    Você chegou ao fim da lista.
+                  </p>
+                )}
             </div>
           </section>
         </div>
