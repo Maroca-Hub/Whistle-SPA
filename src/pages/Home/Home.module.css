@@ -149,8 +149,8 @@
   height: 44px;
   padding: 0 18px;
   border-radius: 9999px;
-  background-color: #f0f0f0;
-  border: 1.5px solid #e0e0e0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   font-size: 0.9rem;
   font-weight: 500;
   color: #1f2937;
@@ -228,12 +228,12 @@
   display: inline-block;
   padding: 4px 12px;
   border-radius: 9999px;
-  background-color: #d1fae5;
-  color: #065f46;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  background: #e5efff;
+  color: #2d6de0;
 }
 
 .taskStatus {

@@ -57,6 +57,11 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isReviewed, setIsReviewed] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<
+    "complete" | "cancel" | null
+  >(null);
 
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -105,6 +110,30 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
     return () => {
       isMounted = false;
     };
+  }, [taskId]);
+
+  const handleCancelTask = useCallback(async () => {
+    setIsCancelling(true);
+    try {
+      await tasksService.cancelTask(taskId);
+      setTask((prev) => (prev ? { ...prev, status: "CANCELLED" } : prev));
+    } catch {
+      // keep current state
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [taskId]);
+
+  const handleCompleteTask = useCallback(async () => {
+    setIsCompleting(true);
+    try {
+      await tasksService.completeTask(taskId);
+      setTask((prev) => (prev ? { ...prev, status: "COMPLETED" } : prev));
+    } catch {
+      // keep current state
+    } finally {
+      setIsCompleting(false);
+    }
   }, [taskId]);
 
   const handleSubmitReview = useCallback(async () => {
@@ -227,7 +256,10 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                     </div>
                     <div>
                       <p className={styles.proName}>{candidateName}</p>
-                      <p className={styles.proMeta}>★ {candidateRating}</p>
+                      <p className={styles.proMeta}>
+                        ★
+                        <p className={styles.proMetaText}>{candidateRating} </p>
+                      </p>
                     </div>
                   </div>
 
@@ -423,17 +455,101 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               </section>
             )}
 
-            {/* <div className={styles.actions}>
-              <button type="button" className={styles.completeButton}>
-                Concluir tarefa
-              </button>
-              <button type="button" className={styles.cancelButton}>
-                Cancelar tarefa
-              </button>
-            </div> */}
+            <div className={styles.separator} />
+
+            <div className={styles.taskButtons}>
+              {task.status === "IN_PROGRESS" && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.completeButton}
+                    disabled={isCompleting}
+                    onClick={() => setConfirmAction("complete")}
+                  >
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M20 6L9 17L4 12"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {isCompleting ? "Concluindo..." : "Concluir tarefa"}
+                  </button>
+                </>
+              )}
+
+              {task.status !== "COMPLETED" && task.status !== "CANCELLED" && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    disabled={isCancelling}
+                    onClick={() => setConfirmAction("cancel")}
+                  >
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M18 6L6 18M6 6L18 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {isCancelling ? "Cancelando..." : "Cancelar tarefa"}
+                  </button>
+                </>
+              )}
+            </div>
           </>
         )}
       </section>
+
+      {confirmAction && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <p className={styles.modalMessage}>
+              {confirmAction === "complete"
+                ? "Você quer mesmo concluir essa tarefa?"
+                : "Você quer mesmo cancelar essa tarefa?"}
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalCancelButton}
+                onClick={() => setConfirmAction(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmButton}
+                disabled={isCancelling || isCompleting}
+                onClick={() => {
+                  if (confirmAction === "complete") handleCompleteTask();
+                  else handleCancelTask();
+                  setConfirmAction(null);
+                }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav active="tasks" />
     </main>

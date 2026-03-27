@@ -139,6 +139,11 @@
   color: #374151;
   font-size: 1.05rem;
   line-height: 1.45;
+  overflow: hidden;
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
 }
 
 .summaryDivider {
@@ -275,7 +280,15 @@
 
 .proMeta {
   margin: 4px 0 0;
-  color: #4b5563;
+  color: #e8cd36;
+  font-size: 0.95rem;
+  display: flex;
+  gap: 4px;
+}
+
+.proMetaText {
+  margin: 0;
+  color: #374151;
   font-size: 0.95rem;
 }
 
@@ -437,24 +450,116 @@
   gap: 12px;
 }
 
+.separator {
+  width: 100%;
+  margin: 18px 2px;
+  border-top: 1px solid #dbdde1;
+  background-color: red;
+}
+
+.taskButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
 .completeButton {
-  height: 60px;
+  background: none;
   border: none;
-  border-radius: 9999px;
-  background: #04b35b;
-  color: #fff;
-  font-size: 1.3rem;
-  font-weight: 700;
+  color: #04b35b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.completeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cancelButton {
-  height: 60px;
+  background: none;
+  border: none;
+  color: #c7210b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0 24px 32px;
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 24px 20px;
+}
+
+.modalMessage {
+  margin: 0 0 24px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+}
+
+.modalCancelButton {
+  flex: 1;
+  height: 52px;
+  border: 2px solid #e5e7eb;
   border-radius: 9999px;
-  border: 2px solid #e04b40;
-  background-color: #e04b40;
-  color: #fff;
-  font-size: 1.3rem;
+  background: transparent;
+  color: #4b5563;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modalConfirmButton {
+  flex: 1;
+  height: 52px;
+  border: none;
+  border-radius: 9999px;
+  background: #0d7ba6;
+  color: #ffffff;
+  font-size: 1rem;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.modalConfirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 375px) {
