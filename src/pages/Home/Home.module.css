@@ -122,7 +122,7 @@
 .skillsViewAll {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #394fdc;
+  color: #0a89b2;
   background: none;
   border: none;
   padding: 0;
@@ -283,7 +283,7 @@
 
 .proposalsCount {
   font-weight: 700;
-  color: #394fdc;
+  color: #0a89b2;
   font-size: 0.875rem;
   line-height: 1.2;
 }
@@ -295,7 +295,7 @@
 }
 
 .taskLink {
-  color: #394fdc;
+  color: #0a89b2;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 600;
@@ -366,7 +366,7 @@
 }
 
 .suggestionLink {
-  color: #394fdc;
+  color: #0a89b2;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 600;
@@ -659,7 +659,7 @@
 }
 
 .navItemActive {
-  color: #394fdc;
+  color: #0a89b2;
 }
 
 .navLabel {

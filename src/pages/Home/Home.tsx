@@ -2,14 +2,21 @@ import { useCallback, useEffect, useMemo, useState, type UIEvent } from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
 import { skillsService, type Skill } from "../../services/skills.service";
+import { tasksService, type CustomerTask } from "../../services/tasks.service";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 
 const SKILL_LIST_SIZE = 20;
 
+function navigate(path: string) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [activeTask, setActiveTask] = useState<CustomerTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isTaskModalClosing, setIsTaskModalClosing] = useState(false);
   const [skillItems, setSkillItems] = useState<Skill[]>([]);
@@ -51,6 +58,16 @@ export function Home() {
 
   useEffect(() => {
     loadUser();
+
+    tasksService
+      .getCustomerTasks(1, 1, ["PENDING", "IN_PROGRESS"])
+      .then((tasks) => {
+        setActiveTask(tasks[0] ?? null);
+      })
+      .catch(() => {
+        setActiveTask(null);
+      });
+
     skillsService
       .getTopSkills()
       .then(setSkills)
@@ -209,92 +226,70 @@ export function Home() {
           </div>
         </section>
 
-        <section className={styles.activeTaskSection}>
-          <h2 className={styles.sectionTitle}>Tarefa ativa</h2>
+        {activeTask && (
+          <section className={styles.activeTaskSection}>
+            <h2 className={styles.sectionTitle}>Tarefa ativa</h2>
 
-          <article className={styles.taskCard}>
-            <div className={styles.taskCardLeft}>
-              <div className={styles.taskIcon} aria-hidden="true">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect
-                    x="3"
-                    y="4"
-                    width="18"
-                    height="14"
-                    rx="2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M8 10H16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M8 14H12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <div className={styles.taskCardContent}>
-              <div className={styles.taskCardHeader}>
-                <h3 className={styles.taskTitle}>Redesign de Landing Page</h3>
-                <span className={styles.taskBadge}>ABERTO</span>
+            <article className={styles.taskCard}>
+              <div className={styles.taskCardLeft}>
+                <div className={styles.taskIcon} aria-hidden="true">
+                  <img src={activeTask.skill.icon} alt="" />
+                </div>
               </div>
 
-              <p className={styles.taskStatus}>Status: Recebendo propostas</p>
-
-              <div className={styles.taskProposals}>
-                <div className={styles.proposalAvatars} aria-hidden="true">
-                  <div className={styles.proposalAvatar}>
-                    <img src="https://i.pravatar.cc/64?img=12" alt="" />
-                  </div>
-                  <div className={styles.proposalAvatar}>
-                    <img src="https://i.pravatar.cc/64?img=29" alt="" />
-                  </div>
-                  <div className={styles.proposalAvatar}>
-                    <img src="https://i.pravatar.cc/64?img=45" alt="" />
-                  </div>
+              <div className={styles.taskCardContent}>
+                <div className={styles.taskCardHeader}>
+                  <h3 className={styles.taskTitle}>{activeTask.skill.name}</h3>
+                  <span className={styles.taskBadge}>
+                    {activeTask.status === "IN_PROGRESS"
+                      ? "EM ANDAMENTO"
+                      : "ABERTO"}
+                  </span>
                 </div>
 
-                <button type="button" className={styles.proposalsLink}>
-                  <span className={styles.proposalsCount}>12 propostas</span>
-                  <span className={styles.proposalsText}>recebidas</span>
+                {activeTask.status === "PENDING" ? (
+                  <div className={styles.taskProposals}>
+                    <button type="button" className={styles.proposalsLink}>
+                      <span className={styles.proposalsCount}>
+                        {activeTask.pending_bids_count} proposta
+                        {activeTask.pending_bids_count === 1 ? "" : "s"}
+                      </span>
+                      <span className={styles.proposalsText}>recebidas</span>
+                    </button>
+                  </div>
+                ) : (
+                  <p className={styles.taskDescription}>
+                    Acompanhe o progresso e comunique-se com o prestador de
+                    serviço para garantir os melhores resultados.
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.taskLink}
+                  onClick={() => navigate(`/tasks/${activeTask.id}`)}
+                >
+                  Gerenciar tarefa
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9 6L15 12L9 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </button>
               </div>
-
-              <button type="button" className={styles.taskLink}>
-                Gerenciar tarefa
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9 6L15 12L9 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </article>
-        </section>
+            </article>
+          </section>
+        )}
 
         <section className={styles.suggestionsSection}>
           <h2 className={styles.sectionTitle}>Sugestões para você</h2>
@@ -455,7 +450,7 @@ export function Home() {
           >
             <div className={styles.modalHandle} aria-hidden="true" />
 
-            <h2 className={styles.modalTitle}>Nova Tarefa</h2>
+            <h2 className={styles.modalTitle}>Nova tarefa</h2>
             <p className={styles.modalSubtitle}>
               Selecione uma categoria para começar.
             </p>
