@@ -1,0 +1,154 @@
+.container {
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      circle at 98% 6%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 12%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 18%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 98% 24%,
+      rgba(57, 79, 220, 0.22) 0 3px,
+      transparent 3px
+    ),
+    var(--color-neutral-100);
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.panel {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  border-left: 4px solid #5f55ea;
+  border-right: 4px solid #5f55ea;
+  background-color: #f1f1f1;
+  padding: 22px 26px 40px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.userBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #0d2745 0%, #1c88b5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(7, 23, 36, 0.18);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarInitial {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+.greeting {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: #127ca6;
+  letter-spacing: -0.02em;
+}
+
+.iconButton {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background-color: #ebebeb;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchBox {
+  margin-top: 26px;
+  width: 100%;
+  height: 64px;
+  border-radius: 9999px;
+  background-color: #e8e8e8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  color: #88929e;
+}
+
+.searchInput {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 1.05rem;
+  color: #6b7280;
+}
+
+.searchInput::placeholder {
+  color: #757f8a;
+}
+
+.heroCard {
+  margin-top: 42px;
+  min-height: 276px;
+  border-radius: 34px;
+  background: linear-gradient(130deg, #248eb2 0%, #056887 78%);
+  display: flex;
+  align-items: center;
+  padding: 36px;
+  box-shadow: 0 20px 34px rgba(10, 103, 132, 0.24);
+}
+
+.heroText {
+  margin: 0;
+  max-width: 250px;
+  color: #f8fbff;
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+@media (max-width: 375px) {
+  .panel {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .heroCard {
+    border-radius: 28px;
+    padding: 28px;
+  }
+}

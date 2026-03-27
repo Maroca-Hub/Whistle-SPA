@@ -15,9 +15,18 @@ export interface LoginResponse {
   scope: string;
 }
 
+export interface MeResponse {
+  id?: string;
+  name?: string;
+  firstName?: string;
+  email?: string;
+  avatarUrl?: string;
+}
+
 export const authService = {
   login: (credentials: LoginRequest) =>
     api.post<LoginResponse>("/auth", credentials),
+  me: () => api.get<MeResponse>("/me"),
 };
 
 export { ApiError };

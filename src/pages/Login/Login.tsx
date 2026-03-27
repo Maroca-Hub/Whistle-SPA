@@ -61,9 +61,12 @@ export function Login() {
 
             try {
               const response = await authService.login({ email, password });
+
               localStorage.setItem("access_token", response.access_token);
               localStorage.setItem("refresh_token", response.refresh_token);
-              console.log("Login realizado com sucesso");
+
+              window.history.pushState({}, "", "/home");
+              window.dispatchEvent(new PopStateEvent("popstate"));
             } catch (err) {
               if (err instanceof ApiError) {
                 if (err.status === 404) {
