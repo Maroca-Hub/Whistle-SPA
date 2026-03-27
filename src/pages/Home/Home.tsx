@@ -129,10 +129,7 @@ export function Home() {
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
-        <AppHeader
-          firstName={user?.first_name}
-          profilePicture={user?.profile_picture}
-        />
+        <AppHeader firstName={user?.first_name} />
 
         <div
           className={styles.searchBox}

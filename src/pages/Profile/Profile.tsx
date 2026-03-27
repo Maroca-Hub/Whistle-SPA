@@ -70,10 +70,7 @@ export function Profile() {
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
-        <AppHeader
-          firstName={user?.first_name}
-          profilePicture={user?.profile_picture}
-        />
+        <AppHeader firstName={user?.first_name} />
         <section className={styles.profileHeader}>
           <div className={styles.mainAvatarWrap}>
             <div className={styles.mainAvatar}>

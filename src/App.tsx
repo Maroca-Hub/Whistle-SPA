@@ -3,8 +3,14 @@ import { useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
+import { TaskDetailsPage } from "./pages/TaskDetails";
 import { Tasks } from "./pages/Tasks";
 import { UserProvider } from "./contexts/UserProvider";
+
+function getTaskIdFromPath(path: string): string | null {
+  const detailsPathMatch = /^\/tasks\/([^/]+)$/.exec(path);
+  return detailsPathMatch?.[1] ?? null;
+}
 
 function App() {
   const [path, setPath] = useState(window.location.pathname);
@@ -43,6 +49,12 @@ function App() {
 
   if (path === "/tasks") {
     return <Tasks />;
+  }
+
+  const taskId = getTaskIdFromPath(path);
+
+  if (taskId) {
+    return <TaskDetailsPage taskId={taskId} />;
   }
 
   return <Login />;

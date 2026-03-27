@@ -64,6 +64,11 @@ function getTaskIcon(task: CustomerTask) {
   return task.skill.icon;
 }
 
+function navigate(path: string) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export function Tasks() {
   const { user, loadUser } = useUser();
   const [tasks, setTasks] = useState<CustomerTask[]>([]);
@@ -136,10 +141,7 @@ export function Tasks() {
   return (
     <main className={styles.container}>
       <section className={styles.panel}>
-        <AppHeader
-          firstName={user?.first_name}
-          profilePicture={user?.profile_picture}
-        />
+        <AppHeader firstName={user?.first_name} />
 
         <section className={styles.hero}>
           <h2 className={styles.title}>Minhas Tarefas</h2>
@@ -177,7 +179,19 @@ export function Tasks() {
             const status = getStatusConfig(task.status);
 
             return (
-              <article key={task.id} className={styles.card}>
+              <article
+                key={task.id}
+                className={styles.card}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/tasks/${task.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(`/tasks/${task.id}`);
+                  }
+                }}
+              >
                 <div className={styles.cardTop}>
                   <div className={styles.skillIconBox}>
                     <img
