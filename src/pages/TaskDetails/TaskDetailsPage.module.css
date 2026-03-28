@@ -41,8 +41,8 @@
 }
 
 .feedback {
-  margin-top: 22px;
-  text-align: center;
+  margin-top: 12px;
+  text-align: left;
   color: #4b5563;
 }
 
@@ -484,7 +484,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 100;
   padding: 0 24px 32px;
@@ -510,6 +510,12 @@
 .modalActions {
   display: flex;
   gap: 12px;
+}
+
+.candidateModalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .modalCancelButton {

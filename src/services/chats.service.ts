@@ -33,7 +33,20 @@ export interface ChatMessage {
   updated_at: string | null;
 }
 
+export interface CreatedChat {
+  id: string;
+  task_id: string;
+  executor_id: string;
+  customer_id: string;
+  customer_read_at: string | null;
+  executor_read_at: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
 export const chatsService = {
+  createChat: (taskId: string) =>
+    api.post<CreatedChat>("/chats", { task_id: taskId }),
   getChatDetails: (chatId: string) => api.get<ChatDetails>(`/chats/${chatId}`),
   getChatMessages: (chatId: string, page = 1, size = 20) =>
     api.get<ChatMessage[]>(

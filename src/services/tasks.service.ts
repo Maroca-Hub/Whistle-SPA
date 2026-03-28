@@ -96,4 +96,8 @@ export const tasksService = {
     api.post<TaskDetails>(`/tasks/${taskId}/cancel`, {}),
   completeTask: (taskId: string) =>
     api.post<TaskDetails>(`/tasks/${taskId}/complete`, {}),
+  awardBid: (taskId: string, bidId: string) =>
+    api.post<TaskDetails>(`/tasks/${taskId}/bids/${bidId}/award`, {}),
+  declineBid: (taskId: string, bidId: string) =>
+    api.post<void>(`/tasks/${taskId}/bids/${bidId}/decline`, {}),
 };

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
+import { chatsService } from "../../services/chats.service";
 import {
   tasksService,
   type TaskCandidate,
   type TaskDetails,
 } from "../../services/tasks.service";
+import { wsService } from "../../services/ws.service";
 import styles from "./TaskDetailsPage.module.css";
 
 interface TaskDetailsPageProps {
@@ -62,6 +64,11 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   const [confirmAction, setConfirmAction] = useState<
     "complete" | "cancel" | null
   >(null);
+  const [confirmCandidateAction, setConfirmCandidateAction] = useState<{
+    type: "accept" | "reject";
+    candidate: TaskCandidate;
+  } | null>(null);
+  const [isProcessingCandidate, setIsProcessingCandidate] = useState(false);
 
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -112,6 +119,33 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
     };
   }, [taskId]);
 
+  useEffect(() => {
+    wsService.connect();
+
+    const subscribe = wsService.onMessage((event) => {
+      try {
+        const parsed = JSON.parse(event.data);
+
+        if (
+          parsed.type === "TASK_BIDDED" &&
+          parsed.data?.bid?.task_id === taskId
+        ) {
+          setCandidates((prev) => {
+            const existingIds = new Set(prev.map((c) => c.id));
+            if (existingIds.has(parsed.data.id)) return prev;
+            return [...prev, parsed.data as TaskCandidate];
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao processar mensagem do websocket:", err);
+      }
+    });
+
+    return () => {
+      subscribe();
+    };
+  }, [taskId]);
+
   const handleCancelTask = useCallback(async () => {
     setIsCancelling(true);
     try {
@@ -135,6 +169,46 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
       setIsCompleting(false);
     }
   }, [taskId]);
+
+  const handleAwardBid = useCallback(
+    async (candidate: TaskCandidate) => {
+      if (!candidate.bid) return;
+      setIsProcessingCandidate(true);
+      try {
+        await tasksService.awardBid(taskId, candidate.bid.id);
+        const updated = await tasksService.getTaskDetails(taskId);
+        const isReviewed =
+          updated.reviews &&
+          updated.reviews.some(
+            (review) => review.reviewer_id === updated.customer_id,
+          );
+        setTask(updated);
+        setCandidates([]);
+        setIsReviewed(isReviewed);
+      } catch {
+        // keep current state
+      } finally {
+        setIsProcessingCandidate(false);
+      }
+    },
+    [taskId],
+  );
+
+  const handleDeclineBid = useCallback(
+    async (candidate: TaskCandidate) => {
+      if (!candidate.bid) return;
+      setIsProcessingCandidate(true);
+      try {
+        await tasksService.declineBid(taskId, candidate.bid.id);
+        setCandidates((prev) => prev.filter((c) => c.id !== candidate.id));
+      } catch {
+        // keep current state
+      } finally {
+        setIsProcessingCandidate(false);
+      }
+    },
+    [taskId],
+  );
 
   const handleSubmitReview = useCallback(async () => {
     if (reviewRating === 0) {
@@ -243,9 +317,19 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                   <button
                     type="button"
                     className={styles.chatButton}
-                    onClick={() =>
-                      task.chat && navigate(`/chat/${task.chat.id}`)
-                    }
+                    onClick={async () => {
+                      if (task.chat) {
+                        navigate(`/chat/${task.chat.id}`);
+                      } else {
+                        try {
+                          const chat = await chatsService.createChat(task.id);
+                          setTask((prev) => (prev ? { ...prev, chat } : prev));
+                          navigate(`/chat/${chat.id}`);
+                        } catch {
+                          // keep current state
+                        }
+                      }
+                    }}
                   >
                     Abrir Chat
                   </button>
@@ -331,10 +415,28 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                       </div>
 
                       <div className={styles.candidateActions}>
-                        <button type="button" className={styles.rejectButton}>
+                        <button
+                          type="button"
+                          className={styles.rejectButton}
+                          onClick={() =>
+                            setConfirmCandidateAction({
+                              type: "reject",
+                              candidate,
+                            })
+                          }
+                        >
                           Rejeitar
                         </button>
-                        <button type="button" className={styles.acceptButton}>
+                        <button
+                          type="button"
+                          className={styles.acceptButton}
+                          onClick={() =>
+                            setConfirmCandidateAction({
+                              type: "accept",
+                              candidate,
+                            })
+                          }
+                        >
                           Aceitar
                         </button>
                       </div>
@@ -343,7 +445,8 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
 
                   {candidates.length === 0 && (
                     <p className={styles.feedback}>
-                      Nenhum candidato no momento.
+                      Estamos procurando por profissionais para sua tarefa.
+                      Fique de olho!
                     </p>
                   )}
                 </div>
@@ -553,6 +656,79 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                 }}
               >
                 Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmCandidateAction && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <p className={styles.modalMessage}>
+              {confirmCandidateAction.type === "accept"
+                ? "Deseja mesmo aceitar essa oferta?"
+                : "Deseja mesmo recusar essa oferta?"}
+            </p>
+
+            <div className={styles.candidateHeader}>
+              <div className={styles.proInfo}>
+                <div className={styles.proAvatar}>
+                  <img
+                    src={confirmCandidateAction.candidate.profile_picture}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                </div>
+                <div>
+                  <p className={styles.proName}>
+                    {fullName(
+                      confirmCandidateAction.candidate.first_name,
+                      confirmCandidateAction.candidate.last_name,
+                    )}
+                  </p>
+                  <p className={styles.proMeta}>
+                    ★{" "}
+                    {Number(
+                      confirmCandidateAction.candidate.rating ?? 0,
+                    ).toFixed(1)}
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.priceBlock}>
+                <p className={styles.priceLabel}>VALOR</p>
+                <p className={styles.priceValue}>
+                  {formatCurrency(
+                    confirmCandidateAction.candidate.bid?.amount ?? 0,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.candidateModalActions}>
+              <button
+                type="button"
+                className={styles.modalCancelButton}
+                onClick={() => setConfirmCandidateAction(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmButton}
+                disabled={isProcessingCandidate}
+                onClick={async () => {
+                  const action = confirmCandidateAction;
+                  setConfirmCandidateAction(null);
+                  if (action.type === "accept") {
+                    await handleAwardBid(action.candidate);
+                  } else {
+                    await handleDeclineBid(action.candidate);
+                  }
+                }}
+              >
+                {isProcessingCandidate ? "Aguarde..." : "Confirmar"}
               </button>
             </div>
           </div>
