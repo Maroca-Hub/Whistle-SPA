@@ -107,7 +107,7 @@
 
 .editTitle {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.6rem;
   line-height: 1;
   color: #141b23;
 }
@@ -310,10 +310,6 @@
 
   .fullName {
     font-size: 1.9rem;
-  }
-
-  .editTitle {
-    font-size: 1.7rem;
   }
 
   .passwordTitle {

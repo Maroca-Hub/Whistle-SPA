@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { BottomNav } from "../../components/BottomNav/BottomNav";
 import { useUser } from "../../hooks/useUser";
 import {
@@ -6,6 +12,7 @@ import {
   type ChatDetails,
   type ChatMessage,
 } from "../../services/chats.service";
+import { wsService } from "../../services/ws.service";
 import styles from "./Chat.module.css";
 
 interface ChatPageProps {
@@ -40,8 +47,9 @@ export function ChatPage({ chatId }: ChatPageProps) {
   const [sendError, setSendError] = useState<string | null>(null);
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const messagesWrapperRef = useRef<HTMLDivElement>(null);
-  const shouldScrollToBottomRef = useRef(false);
+  const messageListRef = useRef<HTMLDivElement>(null);
+  const scrollToBottomRef = useRef(false);
+  const isAtBottomRef = useRef(true);
   const scrollRestoreRef = useRef<{
     prevHeight: number;
     prevTop: number;
@@ -64,7 +72,7 @@ export function ChatPage({ chatId }: ChatPageProps) {
           setChat(chatData);
           setMessages([...messagesData].reverse());
           setHasMoreMessages(messagesData.length === PAGE_SIZE);
-          shouldScrollToBottomRef.current = true;
+          scrollToBottomRef.current = true;
         }
       } catch {
         if (isMounted) setError("Não foi possível carregar o chat.");
@@ -79,8 +87,9 @@ export function ChatPage({ chatId }: ChatPageProps) {
     };
   }, [chatId]);
 
-  useEffect(() => {
-    const container = messagesWrapperRef.current;
+  useLayoutEffect(() => {
+    if (isLoading) return;
+    const container = messageListRef.current;
     if (!container) return;
 
     if (scrollRestoreRef.current) {
@@ -90,11 +99,41 @@ export function ChatPage({ chatId }: ChatPageProps) {
       return;
     }
 
-    if (shouldScrollToBottomRef.current) {
+    if (scrollToBottomRef.current) {
       container.scrollTop = container.scrollHeight;
-      shouldScrollToBottomRef.current = false;
+      scrollToBottomRef.current = false;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
+
+  useEffect(() => {
+    wsService.connect();
+
+    const subscribe = wsService.onMessage((event) => {
+      try {
+        const parsedData = JSON.parse(event.data);
+
+        if (
+          parsedData.type === "MESSAGE_RECEIVED" &&
+          parsedData.data.chat_id === chatId
+        ) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((msg) => msg.id));
+            if (existingIds.has(parsedData.data.id)) {
+              return prev;
+            }
+            return [...prev, parsedData.data];
+          });
+          scrollToBottomRef.current = isAtBottomRef.current;
+        }
+      } catch (err) {
+        console.error("Erro ao processar mensagem do websocket:", err);
+      }
+    });
+
+    return () => {
+      subscribe();
+    };
+  }, [chatId]);
 
   const currentUserId = user?.id || chat?.customer_id || chat?.executor_id;
 
@@ -112,7 +151,7 @@ export function ChatPage({ chatId }: ChatPageProps) {
   const loadOlderMessages = useCallback(async () => {
     if (isLoading || isLoadingOlder || !hasMoreMessages) return;
 
-    const container = messagesWrapperRef.current;
+    const container = messageListRef.current;
     const prevHeight = container?.scrollHeight ?? 0;
     const prevTop = container?.scrollTop ?? 0;
     const nextPage = currentPage + 1;
@@ -152,20 +191,13 @@ export function ChatPage({ chatId }: ChatPageProps) {
     }
   }, [chatId, currentPage, hasMoreMessages, isLoading, isLoadingOlder]);
 
-  useEffect(() => {
-    const container = messagesWrapperRef.current;
-    if (!container) return;
-    if (isLoading || isLoadingOlder || !hasMoreMessages) return;
-
-    // If current content doesn't fill the viewport, keep loading older pages.
-    if (container.scrollHeight <= container.clientHeight + 40) {
-      void loadOlderMessages();
-    }
-  }, [messages, hasMoreMessages, isLoading, isLoadingOlder, loadOlderMessages]);
-
   const handleMessagesScroll = () => {
-    const container = messagesWrapperRef.current;
+    const container = messageListRef.current;
     if (!container) return;
+
+    isAtBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100;
 
     if (container.scrollTop <= 60) {
       void loadOlderMessages();
@@ -205,7 +237,7 @@ export function ChatPage({ chatId }: ChatPageProps) {
         return [...prev, ...toAppend];
       });
       setInputText("");
-      shouldScrollToBottomRef.current = true;
+      scrollToBottomRef.current = true;
       inputRef.current?.focus();
     } catch {
       setSendError("Não foi possível enviar a mensagem.");
@@ -262,15 +294,15 @@ export function ChatPage({ chatId }: ChatPageProps) {
         )}
 
         {!isLoading && !error && (
-          <div
-            ref={messagesWrapperRef}
-            className={styles.messagesWrapper}
-            onScroll={handleMessagesScroll}
-          >
+          <div className={styles.messagesWrapper}>
             {isLoadingOlder && (
               <p className={styles.feedback}>Carregando mensagens antigas...</p>
             )}
-            <div className={styles.messageList}>
+            <div
+              ref={messageListRef}
+              className={styles.messageList}
+              onScroll={handleMessagesScroll}
+            >
               {messages.map((msg) => {
                 const fromMe = msg.sender_id === currentUserId;
                 return (

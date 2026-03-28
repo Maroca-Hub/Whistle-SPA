@@ -1,6 +1,5 @@
 .container {
   height: 100dvh;
-
   display: flex;
   justify-content: center;
   padding: 0;
@@ -183,9 +182,20 @@
 }
 
 .messageList {
+  flex: 1; /* ESSENCIAL: ocupa o espaço restante */
+  overflow-y: auto;
+
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  /* esconder scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.messageList::-webkit-scrollbar {
+  display: none;
 }
 
 .messageRow {
