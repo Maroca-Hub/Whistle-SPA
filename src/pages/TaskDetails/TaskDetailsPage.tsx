@@ -310,7 +310,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               </div>
             </section>
 
-            {task.candidate ? (
+            {task.chat || task.status === "IN_PROGRESS" ? (
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Profissional</h3>
@@ -336,7 +336,14 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                 </div>
 
                 <article className={styles.proCard}>
-                  <div className={styles.proInfo}>
+                  <button
+                    type="button"
+                    className={styles.proInfo}
+                    onClick={() =>
+                      task.candidate &&
+                      navigate(`/executor/${task.candidate.id}`)
+                    }
+                  >
                     <div className={styles.proAvatar}>
                       <img
                         src={task.candidate?.profile_picture}
@@ -353,7 +360,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                         </span>
                       </p>
                     </div>
-                  </div>
+                  </button>
 
                   <div className={styles.priceBlock}>
                     <p className={styles.priceLabel}>VALOR</p>
@@ -384,7 +391,11 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                       className={`${styles.proCard} ${styles.candidateCard}`}
                     >
                       <div className={styles.candidateHeader}>
-                        <div className={styles.proInfo}>
+                        <button
+                          type="button"
+                          className={styles.proInfo}
+                          onClick={() => navigate(`/executor/${candidate.id}`)}
+                        >
                           <div className={styles.proAvatar}>
                             <img
                               src={candidate.profile_picture}
@@ -404,7 +415,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                               ★ {Number(candidate.rating ?? 0).toFixed(1)}
                             </p>
                           </div>
-                        </div>
+                        </button>
 
                         <div className={styles.priceBlock}>
                           <p className={styles.priceLabel}>VALOR</p>

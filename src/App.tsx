@@ -6,6 +6,7 @@ import { Profile } from "./pages/Profile";
 import { ChatPage } from "./pages/Chat";
 import { TaskDetailsPage } from "./pages/TaskDetails";
 import { Tasks } from "./pages/Tasks";
+import { ExecutorProfilePage } from "./pages/ExecutorProfile";
 import { UserProvider } from "./contexts/UserProvider";
 
 function getTaskIdFromPath(path: string): string | null {
@@ -16,6 +17,11 @@ function getTaskIdFromPath(path: string): string | null {
 function getChatIdFromPath(path: string): string | null {
   const chatPathMatch = /^\/chat\/([^/]+)$/.exec(path);
   return chatPathMatch?.[1] ?? null;
+}
+
+function getExecutorIdFromPath(path: string): string | null {
+  const match = /^\/executor\/([^/]+)$/.exec(path);
+  return match?.[1] ?? null;
 }
 
 function App() {
@@ -67,6 +73,12 @@ function App() {
 
   if (chatId) {
     return <ChatPage chatId={chatId} />;
+  }
+
+  const executorId = getExecutorIdFromPath(path);
+
+  if (executorId) {
+    return <ExecutorProfilePage executorId={executorId} />;
   }
 
   return <Login />;
