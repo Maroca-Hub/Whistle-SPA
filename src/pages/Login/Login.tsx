@@ -181,7 +181,14 @@ export function Login() {
           <span className={styles.dividerLine} />
         </div>
 
-        <button type="button" className={styles.googleButton}>
+        <button
+          type="button"
+          className={styles.googleButton}
+          onClick={() => {
+            window.location.href = authService.getGoogleLoginUrl();
+          }}
+          disabled={loading}
+        >
           <img
             src="https://www.google.com/favicon.ico"
             width="18"

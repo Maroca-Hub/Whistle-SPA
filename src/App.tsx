@@ -1,7 +1,7 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Home } from "./pages/Home";
-import { Login } from "./pages/Login";
+import { AuthCallback, Login } from "./pages/Login";
 import { Profile } from "./pages/Profile";
 import { ChatPage } from "./pages/Chat";
 import { TaskDetailsPage } from "./pages/TaskDetails";
@@ -27,6 +27,11 @@ function getExecutorIdFromPath(path: string): string | null {
 function App() {
   const [path, setPath] = useState(window.location.pathname);
 
+  const replacePath = useCallback((nextPath: string) => {
+    window.history.replaceState({}, "", nextPath);
+    setPath(nextPath);
+  }, []);
+
   useEffect(() => {
     const onLocationChange = () => {
       setPath(window.location.pathname);
@@ -38,6 +43,10 @@ function App() {
       window.removeEventListener("popstate", onLocationChange);
     };
   }, []);
+
+  if (path === "/auth/callback") {
+    return <AuthCallback onNavigate={replacePath} />;
+  }
 
   const isAuthenticated = Boolean(localStorage.getItem("access_token"));
 

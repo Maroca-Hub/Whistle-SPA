@@ -39,6 +39,7 @@ export interface UpdatePasswordRequest {
 export const authService = {
   login: (credentials: LoginRequest) =>
     api.post<LoginResponse>("/auth", credentials),
+  getGoogleLoginUrl: () => api.buildUrl("/auth"),
   me: () => api.get<MeResponse>("/me"),
   updateMe: ({ firstName, lastName, profilePicture }: UpdateMeRequest) => {
     const formData = new FormData();

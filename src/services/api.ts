@@ -134,6 +134,8 @@ async function request<T>(
 }
 
 export const api = {
+  buildUrl: (path: string) => `${BASE_URL}${path}`,
+
   post: <T>(path: string, body: unknown) =>
     request<T>(path, {
       method: "POST",
