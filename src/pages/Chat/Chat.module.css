@@ -94,7 +94,7 @@
   height: 44px;
   border-radius: 12px;
   background: #f0f9fc;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -133,7 +133,7 @@
   margin: 2px 0 0;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
   line-height: 1.2;
 }
 
@@ -246,7 +246,7 @@
 }
 
 .bubbleSent {
-  background: #0d7ba6;
+  background: var(--color-primary-500);
   border-bottom-right-radius: 4px;
 }
 
@@ -288,7 +288,7 @@
 
 .readReceipt {
   font-size: 0.72rem;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
 }
 
 /* Input Bar */
@@ -334,7 +334,7 @@
   width: 48px;
   height: 48px;
   border-radius: 9999px;
-  background: #0d7ba6;
+  background: var(--color-primary-500);
   border: none;
   color: #ffffff;
   display: flex;

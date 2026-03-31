@@ -411,7 +411,7 @@
   height: 54px;
   border: none;
   border-radius: 9999px;
-  background: #0d7ba6;
+  background: var(--color-primary-500);
   color: #fff;
   font-size: 1.05rem;
   font-weight: 700;
@@ -536,7 +536,7 @@
   height: 52px;
   border: none;
   border-radius: 9999px;
-  background: #0d7ba6;
+  background: var(--color-primary-500);
   color: #ffffff;
   font-size: 1rem;
   font-weight: 700;

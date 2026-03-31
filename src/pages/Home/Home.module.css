@@ -162,7 +162,7 @@
   padding: 20px;
   border-radius: 16px;
   background-color: #ffffff;
-  border-left: 4px solid #0d7ba6;
+  border-left: 4px solid var(--color-primary-500);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -178,7 +178,7 @@
   justify-content: center;
   background-color: #f0f9fc;
   border-radius: 12px;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
 }
 
 .taskCardContent {
@@ -210,8 +210,26 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   white-space: nowrap;
+}
+
+.statusPending {
+  background: #fff3df;
+  color: #da8f00;
+}
+
+.statusInProgress {
   background: #e5efff;
   color: #2d6de0;
+}
+
+.statusCompleted {
+  background: #e5f7ef;
+  color: #00a86b;
+}
+
+.statusCancelled {
+  background: #ffe9e7;
+  color: #e04b40;
 }
 
 .taskStatus {
@@ -375,20 +393,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
 }
 
 .suggestionTitleBlue {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
 }
 
 .suggestionDescBlue {
   margin: 0;
   font-size: 0.875rem;
-  color: #0d7ba6;
+  color: var(--color-primary-500);
 }
 
 /* FAB */
@@ -400,7 +418,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: #0d7ba6;
+  background-color: var(--color-primary-500);
   border: none;
   color: #ffffff;
   display: flex;
@@ -467,7 +485,7 @@
   max-width: 860px;
   background: #f6f6f7;
   border-radius: 28px 28px 0 0;
-  padding: 12px 18px calc(90px + env(safe-area-inset-bottom));
+  padding: 12px 18px calc(20px + env(safe-area-inset-bottom));
   height: min(78dvh, 760px);
   display: flex;
   flex-direction: column;
@@ -534,6 +552,13 @@
   margin-top: 18px;
   overflow-y: auto;
   padding-right: 2px;
+  /* esconder scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalTaskList::-webkit-scrollbar {
+  display: none;
 }
 
 .modalTaskCard {
@@ -541,13 +566,20 @@
   align-items: center;
   gap: 14px;
   min-height: 94px;
+  width: 100%;
   border-radius: 22px;
   background: #ececee;
   padding: 12px;
+  text-align: left;
+  border: none;
 }
 
 .modalTaskCard + .modalTaskCard {
   margin-top: 12px;
+}
+
+.modalTaskCard:active {
+  transform: scale(0.995);
 }
 
 .modalTaskAvatar {
@@ -599,6 +631,186 @@
   text-align: center;
   color: #697587;
   font-size: 0.92rem;
+}
+
+.modalFormHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.modalBackButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBackButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalFormTitle {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.modalHeaderSpacer {
+  width: 40px;
+  height: 40px;
+}
+
+.modalSelectedSkillCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 88px;
+  border-radius: 20px;
+  background: #ececee;
+  padding: 12px;
+}
+
+.modalForm {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalForm::-webkit-scrollbar {
+  display: none;
+}
+
+.modalFieldLabel {
+  color: #2f3946;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.modalTextarea,
+.modalInput,
+.modalFileInput {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.98rem;
+  outline: none;
+  box-shadow: none;
+  transition: border-color var(--transition-fast);
+  display: block;
+}
+
+.modalTextarea:focus,
+.modalInput:focus,
+.modalFileInput:focus {
+  border-color: var(--color-primary);
+}
+
+.modalTextarea {
+  min-height: 150px;
+  resize: vertical;
+  padding: 16px;
+  overflow: auto;
+}
+
+.modalFileInput {
+  padding: 12px 14px;
+}
+
+.modalCheckboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  background: #ececee;
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.modalCheckboxRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.modalFormError {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin: 2px 0 0;
+}
+
+.modalFieldHint {
+  margin: -8px 2px 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.modalImageName {
+  margin: -6px 2px 0;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+}
+
+.modalInfoBox {
+  border: 1px solid var(--color-primary-100);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.modalInfoBox svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.modalInfoBox p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.modalSubmitButton {
+  min-height: 40px;
+  border-radius: 9999px;
+  background: var(--color-primary-500);
+  color: var(--color-text-on-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+
+.modalSubmitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .modalFormTitle {
+    font-size: 1.8rem;
+  }
 }
 
 @keyframes modalOverlayIn {

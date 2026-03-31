@@ -79,6 +79,31 @@ export interface TaskDetails extends CustomerTask {
   chat: TaskChat | null;
 }
 
+export interface CreateTaskRequest {
+  skillId: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  customerHasResources: boolean;
+  image?: File;
+}
+
+export interface CreatedTaskResponse {
+  id: string;
+  skill_id: string;
+  customer_id: string;
+  executor_id: string | null;
+  description: string;
+  latitude: number;
+  longitude: number;
+  status: TaskStatus;
+  customer_has_resources: boolean;
+  image: string | null;
+  reviews: TaskReview[];
+  created_at: string;
+  updated_at: string | null;
+}
+
 export const tasksService = {
   getCustomerTasks: (page = 1, size = 20, statuses?: TaskStatus[]) => {
     const params = new URLSearchParams();
@@ -100,4 +125,25 @@ export const tasksService = {
     api.post<TaskDetails>(`/tasks/${taskId}/bids/${bidId}/award`, {}),
   declineBid: (taskId: string, bidId: string) =>
     api.post<void>(`/tasks/${taskId}/bids/${bidId}/decline`, {}),
+  createTask: ({
+    skillId,
+    description,
+    latitude,
+    longitude,
+    customerHasResources,
+    image,
+  }: CreateTaskRequest) => {
+    const formData = new FormData();
+    formData.append("skillId", skillId);
+    formData.append("description", description);
+    formData.append("latitude", String(latitude));
+    formData.append("longitude", String(longitude));
+    formData.append("customerHasResources", String(customerHasResources));
+
+    if (image) {
+      formData.append("image", image);
+    }
+
+    return api.post<CreatedTaskResponse>("/tasks", formData);
+  },
 };
