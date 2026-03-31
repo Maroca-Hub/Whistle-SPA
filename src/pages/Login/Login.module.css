@@ -127,6 +127,21 @@
   border-color: #dc2626;
 }
 
+.fileInput {
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-surface);
+  font: var(--text-body);
+  font-family: var(--font-family);
+  color: var(--color-text);
+  padding: var(--space-3) var(--space-4);
+}
+
+.fileInputError {
+  border-color: #dc2626;
+}
+
 .fieldError {
   font: var(--text-caption);
   font-family: var(--font-family);
@@ -282,6 +297,9 @@
 }
 
 .registerLink {
+  border: none;
+  background: transparent;
+  padding: 0;
   color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
   transition: opacity var(--transition-fast);
@@ -289,4 +307,9 @@
 
 .registerLink:active {
   opacity: 0.7;
+}
+
+.registerLink:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

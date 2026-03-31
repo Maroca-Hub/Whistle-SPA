@@ -2,6 +2,7 @@ import "./App.css";
 import { useCallback, useEffect, useState } from "react";
 import { Home } from "./pages/Home";
 import { AuthCallback, Login } from "./pages/Login";
+import { Register } from "./pages/Login/Register";
 import { Profile } from "./pages/Profile";
 import { ChatPage } from "./pages/Chat";
 import { TaskDetailsPage } from "./pages/TaskDetails";
@@ -50,14 +51,18 @@ function App() {
 
   const isAuthenticated = Boolean(localStorage.getItem("access_token"));
 
-  if (!isAuthenticated && path !== "/") {
+  if (!isAuthenticated && path !== "/" && path !== "/register") {
     window.history.replaceState({}, "", "/");
     return <Login />;
   }
 
-  if (isAuthenticated && path === "/") {
+  if (isAuthenticated && (path === "/" || path === "/register")) {
     window.history.replaceState({}, "", "/home");
     return <Home />;
+  }
+
+  if (path === "/register") {
+    return <Register />;
   }
 
   if (path === "/home") {

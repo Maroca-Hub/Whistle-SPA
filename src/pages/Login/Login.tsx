@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./Login.module.css";
 import { authService, ApiError } from "../../services/auth.service";
+
+const LOGIN_AFTER_SIGNUP_EMAIL_KEY = "login_after_signup_email";
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -18,6 +20,21 @@ export function Login() {
   const otpError =
     otp && !/^\d{6}$/.test(otp) ? "Informe um OTP com 6 dígitos." : null;
   const hasValidationErrors = Boolean(emailError || (otpRequested && otpError));
+
+  useEffect(() => {
+    const signupEmail = sessionStorage.getItem(LOGIN_AFTER_SIGNUP_EMAIL_KEY);
+
+    if (!signupEmail) {
+      return;
+    }
+
+    sessionStorage.removeItem(LOGIN_AFTER_SIGNUP_EMAIL_KEY);
+    setEmail(signupEmail);
+    setOtpRequested(true);
+    setInfo(
+      "Conta criada com sucesso. Use o código de acesso enviado para o seu e-mail.",
+    );
+  }, []);
 
   return (
     <main className={styles.container}>
@@ -213,9 +230,16 @@ export function Login() {
 
         <p className={styles.registerPrompt}>
           Não tem uma conta?{" "}
-          <a href="#" className={styles.registerLink}>
+          <button
+            type="button"
+            className={styles.registerLink}
+            onClick={() => {
+              window.history.pushState({}, "", "/register");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          >
             Cadastre-se
-          </a>
+          </button>
         </p>
       </div>
     </main>
