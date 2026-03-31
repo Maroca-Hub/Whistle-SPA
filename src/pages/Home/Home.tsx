@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type UIEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type UIEvent,
+} from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
 import { skillsService, type Skill } from "../../services/skills.service";
@@ -26,6 +32,7 @@ export function Home() {
   const [skillListError, setSkillListError] = useState<string | null>(null);
   const [skillSearch, setSkillSearch] = useState("");
   const [debouncedSkillSearch, setDebouncedSkillSearch] = useState("");
+  const skipNextSearchEffectRef = useRef(false);
 
   const openTaskModal = useCallback(() => {
     setIsTaskModalClosing(false);
@@ -40,22 +47,29 @@ export function Home() {
     setIsTaskModalClosing(true);
   }, [isTaskModalOpen]);
 
-  const loadSkillPage = useCallback(async (page: number, reset = false) => {
-    setIsLoadingSkills(true);
-    setSkillListError(null);
+  const loadSkillPage = useCallback(
+    async (page: number, reset = false, search = "") => {
+      setIsLoadingSkills(true);
+      setSkillListError(null);
 
-    try {
-      const response = await skillsService.getTopSkills(page, SKILL_LIST_SIZE);
+      try {
+        const response = await skillsService.getTopSkills(
+          page,
+          SKILL_LIST_SIZE,
+          search,
+        );
 
-      setSkillItems((prev) => (reset ? response : [...prev, ...response]));
-      setSkillPage(page);
-      setHasMoreSkills(response.length >= SKILL_LIST_SIZE);
-    } catch {
-      setSkillListError("Erro ao carregar tarefas.");
-    } finally {
-      setIsLoadingSkills(false);
-    }
-  }, []);
+        setSkillItems((prev) => (reset ? response : [...prev, ...response]));
+        setSkillPage(page);
+        setHasMoreSkills(response.length >= SKILL_LIST_SIZE);
+      } catch {
+        setSkillListError("Erro ao carregar tarefas.");
+      } finally {
+        setIsLoadingSkills(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     loadUser();
@@ -80,9 +94,10 @@ export function Home() {
       return;
     }
 
-    loadSkillPage(1, true);
     setSkillSearch("");
     setDebouncedSkillSearch("");
+    skipNextSearchEffectRef.current = true;
+    loadSkillPage(1, true, "");
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -124,19 +139,18 @@ export function Home() {
     };
   }, [skillSearch]);
 
-  const filteredSkillItems = useMemo(() => {
-    if (!debouncedSkillSearch.trim()) {
-      return skillItems;
+  useEffect(() => {
+    if (!isTaskModalOpen) {
+      return;
     }
 
-    const normalized = debouncedSkillSearch.toLowerCase();
+    if (skipNextSearchEffectRef.current) {
+      skipNextSearchEffectRef.current = false;
+      return;
+    }
 
-    return skillItems.filter(
-      (item) =>
-        item.name.toLowerCase().includes(normalized) ||
-        item.description.toLowerCase().includes(normalized),
-    );
-  }, [debouncedSkillSearch, skillItems]);
+    loadSkillPage(1, true, debouncedSkillSearch);
+  }, [debouncedSkillSearch, isTaskModalOpen, loadSkillPage]);
 
   const handleSkillListScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
@@ -150,9 +164,15 @@ export function Home() {
         return;
       }
 
-      loadSkillPage(skillPage + 1);
+      loadSkillPage(skillPage + 1, false, debouncedSkillSearch);
     },
-    [hasMoreSkills, isLoadingSkills, loadSkillPage, skillPage],
+    [
+      debouncedSkillSearch,
+      hasMoreSkills,
+      isLoadingSkills,
+      loadSkillPage,
+      skillPage,
+    ],
   );
 
   return (
@@ -505,7 +525,7 @@ export function Home() {
               className={styles.modalTaskList}
               onScroll={handleSkillListScroll}
             >
-              {filteredSkillItems.map((task) => (
+              {skillItems.map((task) => (
                 <article key={task.id} className={styles.modalTaskCard}>
                   <div className={styles.modalTaskAvatar}>
                     <img src={task.icon} alt="" aria-hidden="true" />
@@ -548,7 +568,7 @@ export function Home() {
 
               {!isLoadingSkills &&
                 !skillListError &&
-                filteredSkillItems.length === 0 && (
+                skillItems.length === 0 && (
                   <p className={styles.modalStatusText}>
                     Nenhuma tarefa encontrada.
                   </p>

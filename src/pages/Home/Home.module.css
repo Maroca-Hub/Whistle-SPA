@@ -464,7 +464,7 @@
 
 .modalSheet {
   width: 100%;
-  max-width: 430px;
+  max-width: 860px;
   background: #f6f6f7;
   border-radius: 28px 28px 0 0;
   padding: 12px 18px calc(90px + env(safe-area-inset-bottom));
@@ -520,6 +520,7 @@
   width: 100%;
   border: 0;
   outline: 0;
+  height: 50px;
   background: transparent;
   font-size: 1.02rem;
   color: #2d3748;

@@ -11,6 +11,15 @@ export interface Skill {
 }
 
 export const skillsService = {
-  getTopSkills: (page = 1, size = 5) =>
-    api.get<Skill[]>(`/skills?page=${page}&size=${size}`),
+  getTopSkills: (page = 1, size = 5, name?: string) => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("size", String(size));
+
+    if (name?.trim()) {
+      params.set("name", name.trim());
+    }
+
+    return api.get<Skill[]>(`/skills?${params.toString()}`);
+  },
 };
