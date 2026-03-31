@@ -73,6 +73,8 @@ export interface TaskChat {
 }
 
 export interface TaskDetails extends CustomerTask {
+  customer_has_resources: boolean;
+  image: string | null;
   reviews: TaskReview[];
   customer: TaskUser;
   candidate: TaskCandidate | null;

@@ -302,12 +302,37 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
 
               <div className={styles.summaryDivider} />
 
-              <div className={styles.metaGrid}>
-                <p className={styles.metaLabel}>DATA</p>
-                <p className={styles.metaValue}>
-                  {formatDateLabel(task.created_at)}
-                </p>
+              <div className={styles.summaryMetaBlock}>
+                <div className={styles.metaGrid}>
+                  <p className={styles.metaLabel}>DATA</p>
+                  <p className={styles.metaValue}>
+                    {formatDateLabel(task.created_at)}
+                  </p>
+                </div>
+
+                <div className={styles.metaGrid}>
+                  <p className={styles.metaLabel}>MATERIAL</p>
+                  <p className={styles.metaValue}>
+                    {task.customer_has_resources
+                      ? "Cliente possui material"
+                      : "Cliente não possui material"}
+                  </p>
+                </div>
               </div>
+
+              {task.image && (
+                <>
+                  <div className={styles.summaryDivider} />
+                  <div className={styles.demandImageBlock}>
+                    <p className={styles.metaLabel}>IMAGEM DA TAREFA</p>
+                    <img
+                      src={task.image}
+                      alt="Imagem da tarefa"
+                      className={styles.demandImage}
+                    />
+                  </div>
+                </>
+              )}
             </section>
 
             {task.chat || task.status === "IN_PROGRESS" ? (
