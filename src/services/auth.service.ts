@@ -1,8 +1,8 @@
 import { api, ApiError } from "./api";
 
-export interface LoginRequest {
+export interface LoginWithOtpRequest {
   email: string;
-  password: string;
+  otp: string;
 }
 
 export interface LoginResponse {
@@ -31,14 +31,11 @@ export interface UpdateMeRequest {
   profilePicture?: File;
 }
 
-export interface UpdatePasswordRequest {
-  oldPassword: string;
-  newPassword: string;
-}
-
 export const authService = {
-  login: (credentials: LoginRequest) =>
-    api.post<LoginResponse>("/auth", credentials),
+  requestOtp: (email: string) =>
+    api.get<void>(`/auth/otp/${encodeURIComponent(email)}`),
+  loginWithOtp: (credentials: LoginWithOtpRequest) =>
+    api.post<LoginResponse>("/auth/otp", credentials),
   getGoogleLoginUrl: () => api.buildUrl("/auth"),
   me: () => api.get<MeResponse>("/me"),
   updateMe: ({ firstName, lastName, profilePicture }: UpdateMeRequest) => {
@@ -58,8 +55,6 @@ export const authService = {
 
     return api.patch<MeResponse>("/me", formData);
   },
-  updatePassword: (body: UpdatePasswordRequest) =>
-    api.patch<void>("/me/password", body),
 };
 
 export { ApiError };

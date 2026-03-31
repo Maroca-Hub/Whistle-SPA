@@ -6,23 +6,18 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function isValidPassword(password: string): boolean {
-  return password.length >= 8;
-}
-
 export function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const emailError = email && !isValidEmail(email) ? "E-mail inválido." : null;
-  const passwordError =
-    password && !isValidPassword(password)
-      ? "A senha deve ter pelo menos 8 caracteres."
-      : null;
-  const hasValidationErrors = Boolean(emailError || passwordError);
+  const otpError =
+    otp && !/^\d{6}$/.test(otp) ? "Informe um OTP com 6 dígitos." : null;
+  const hasValidationErrors = Boolean(emailError || (otpRequested && otpError));
 
   return (
     <main className={styles.container}>
@@ -51,16 +46,25 @@ export function Login() {
         </p>
 
         {error && <div className={styles.errorMessage}>{error}</div>}
+        {info && <div className={styles.infoMessage}>{info}</div>}
 
         <form
           className={styles.form}
           onSubmit={async (e) => {
             e.preventDefault();
             setError(null);
+            setInfo(null);
             setLoading(true);
 
             try {
-              const response = await authService.login({ email, password });
+              if (!otpRequested) {
+                await authService.requestOtp(email);
+                setOtpRequested(true);
+                setInfo("Enviamos um código de acesso para o seu e-mail.");
+                return;
+              }
+
+              const response = await authService.loginWithOtp({ email, otp });
 
               localStorage.setItem("access_token", response.access_token);
               localStorage.setItem("refresh_token", response.refresh_token);
@@ -70,7 +74,9 @@ export function Login() {
             } catch (err) {
               if (err instanceof ApiError) {
                 if (err.status === 404) {
-                  setError("E-mail ou senha incorretos.");
+                  setError("E-mail não encontrado.");
+                } else if (err.status === 401) {
+                  setError("Código de acesso inválido ou expirado.");
                 } else {
                   setError(`Erro: ${err.message}`);
                 }
@@ -95,83 +101,89 @@ export function Login() {
               placeholder="nome@exemplo.com"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const nextEmail = e.target.value;
+                setEmail(nextEmail);
+                setOtp("");
+                setOtpRequested(false);
+                setError(null);
+                setInfo(null);
+              }}
               disabled={loading}
             />
             {emailError && <p className={styles.fieldError}>{emailError}</p>}
           </div>
 
-          <div className={styles.field}>
-            <div className={styles.passwordHeader}>
-              <label htmlFor="password" className={styles.label}>
-                Senha
+          {otpRequested && (
+            <div className={styles.field}>
+              <label htmlFor="otp" className={styles.label}>
+                Código de acesso
               </label>
-              <a href="#" className={styles.forgotLink}>
-                Esqueceu a senha?
-              </a>
-            </div>
-            <div className={styles.passwordWrapper}>
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                className={`${styles.input} ${passwordError ? styles.inputError : ""}`}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="otp"
+                type="text"
+                inputMode="numeric"
+                className={`${styles.input} ${otpError ? styles.inputError : ""}`}
+                placeholder="000000"
+                autoComplete="one-time-code"
+                value={otp}
+                maxLength={6}
+                onChange={(e) => {
+                  const nextValue = e.target.value.replace(/\D/g, "");
+                  setOtp(nextValue);
+                  setError(null);
+                }}
                 disabled={loading}
               />
-              <button
-                type="button"
-                className={styles.eyeButton}
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              >
-                {showPassword ? (
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
+              {otpError && <p className={styles.fieldError}>{otpError}</p>}
             </div>
-            {passwordError && (
-              <p className={styles.fieldError}>{passwordError}</p>
-            )}
-          </div>
+          )}
+
+          {otpRequested && (
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              disabled={loading || Boolean(emailError)}
+              onClick={async () => {
+                setError(null);
+                setInfo(null);
+                setLoading(true);
+
+                try {
+                  await authService.requestOtp(email);
+                  setInfo("Novo código de acesso enviado para o seu e-mail.");
+                } catch (err) {
+                  if (err instanceof ApiError && err.status === 404) {
+                    setError("E-mail não encontrado.");
+                  } else if (err instanceof ApiError) {
+                    setError(`Erro: ${err.message}`);
+                  } else {
+                    setError("Erro ao reenviar OTP. Tente novamente.");
+                  }
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Reenviar código
+            </button>
+          )}
 
           <button
             type="submit"
             className={styles.submitButton}
-            disabled={loading || !email || !password || hasValidationErrors}
+            disabled={
+              loading ||
+              !email ||
+              hasValidationErrors ||
+              (otpRequested && otp.length !== 6)
+            }
           >
-            {loading ? "Carregando..." : "Entrar"}
+            {loading
+              ? "Carregando..."
+              : otpRequested
+                ? "Entrar com código de acesso"
+                : "Receber código de acesso"}
           </button>
         </form>
 
