@@ -792,7 +792,7 @@
 }
 
 .modalSubmitButton {
-  min-height: 40px;
+  min-height: 60px;
   border-radius: 9999px;
   background: var(--color-primary-500);
   color: var(--color-text-on-primary);

@@ -9,6 +9,7 @@ import {
 } from "react";
 import styles from "./Home.module.css";
 import { useUser } from "../../hooks/useUser";
+import { ApiError } from "../../services/api";
 import { skillsService, type Skill } from "../../services/skills.service";
 import { tasksService, type CustomerTask } from "../../services/tasks.service";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
@@ -102,7 +103,7 @@ export function Home() {
     loadActiveTask();
 
     skillsService
-      .getTopSkills()
+      .getTopSkills(1, 5, undefined, true)
       .then(setSkills)
       .catch(() => {});
   }, [loadActiveTask, loadUser]);
@@ -325,18 +326,20 @@ export function Home() {
 
       navigate(`/tasks/${createdTask.id}`);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("RESOURCE_NOT_FOUND")) {
+      if (error instanceof ApiError) {
+        if (error.status === 404) {
           setCreateTaskError("Servico nao encontrado.");
-        } else if (error.message.includes("RESOURCE_UNAVAILABLE")) {
-          setCreateTaskError("Este servico nao esta disponivel no momento.");
-        } else if (error.message.includes("RESOURCE_ALREADY_EXISTS")) {
+        } else if (error.status === 409) {
           setCreateTaskError(
             "Voce ja possui uma tarefa em andamento. Finalize-a antes de criar outra.",
           );
+        } else if (error.status === 422) {
+          setCreateTaskError("Este servico nao esta disponivel no momento.");
         } else {
-          setCreateTaskError(`Erro ao criar tarefa: ${error.message}`);
+          setCreateTaskError("Erro ao criar tarefa. Tente novamente.");
         }
+      } else if (error instanceof Error) {
+        setCreateTaskError(error.message);
       } else {
         setCreateTaskError("Erro ao criar tarefa.");
       }

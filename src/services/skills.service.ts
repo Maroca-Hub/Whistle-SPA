@@ -11,10 +11,19 @@ export interface Skill {
 }
 
 export const skillsService = {
-  getTopSkills: (page = 1, size = 5, name?: string) => {
+  getTopSkills: (
+    page = 1,
+    size = 5,
+    name?: string,
+    orderByTasksCount = false,
+  ) => {
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("size", String(size));
+
+    if (orderByTasksCount) {
+      params.set("orderByTasksCount", "true");
+    }
 
     if (name?.trim()) {
       params.set("name", name.trim());
