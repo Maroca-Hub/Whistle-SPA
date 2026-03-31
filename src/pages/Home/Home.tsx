@@ -26,6 +26,7 @@ function navigate(path: string) {
 export function Home() {
   const { user, loadUser } = useUser();
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [suggestionSkills, setSuggestionSkills] = useState<Skill[]>([]);
   const [activeTask, setActiveTask] = useState<CustomerTask | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isTaskModalClosing, setIsTaskModalClosing] = useState(false);
@@ -117,6 +118,55 @@ export function Home() {
       .then(setSkills)
       .catch(() => {});
   }, [loadActiveTask, loadUser]);
+
+  useEffect(() => {
+    const loadSuggestionsSkills = async () => {
+      try {
+        const STORAGE_KEY = "suggestionSkills";
+        const TIMESTAMP_KEY = "suggestionSkillsTimestamp";
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+        const now = Date.now();
+        const lastUpdate = localStorage.getItem(TIMESTAMP_KEY);
+        const savedSkillIds = localStorage.getItem(STORAGE_KEY);
+
+        if (
+          lastUpdate &&
+          savedSkillIds &&
+          now - parseInt(lastUpdate) < ONE_DAY_MS
+        ) {
+          const skillIds = JSON.parse(savedSkillIds) as string[];
+          const allSkills = await skillsService.getTopSkills(1, 100);
+          const matched = allSkills.filter((s) => skillIds.includes(s.id));
+          if (matched.length > 0) {
+            setSuggestionSkills(matched);
+            return;
+          }
+        }
+
+        const randomPage = Math.floor(Math.random() * 8) + 1;
+        const pageSkills = await skillsService.getTopSkills(randomPage, 5);
+
+        if (pageSkills.length === 0) {
+          return;
+        }
+
+        const shuffled = [...pageSkills].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, 3);
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(selected.map((s) => s.id)),
+        );
+        localStorage.setItem(TIMESTAMP_KEY, String(now));
+        setSuggestionSkills(selected);
+      } catch {
+        // silently fail, suggestions are optional
+      }
+    };
+
+    loadSuggestionsSkills();
+  }, []);
 
   useEffect(() => {
     if (!isTaskModalOpen) {
@@ -522,119 +572,34 @@ export function Home() {
           </section>
         )}
 
-        <section className={styles.suggestionsSection}>
-          <h2 className={styles.sectionTitle}>Sugestões para você</h2>
+        {suggestionSkills.length > 0 && (
+          <section className={styles.suggestionsSection}>
+            <h2 className={styles.sectionTitle}>Sugestões para você</h2>
 
-          <div className={styles.suggestionsGrid}>
-            <article className={styles.suggestionCard}>
-              <div className={styles.suggestionIcon} aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+            <div className={styles.suggestionsGrid}>
+              {suggestionSkills.map((skill) => (
+                <button
+                  key={skill.id}
+                  type="button"
+                  className={styles.suggestionCard}
+                  onClick={() => openTaskModalWithSkill(skill)}
                 >
-                  <path
-                    d="M5 16L10 11L13 14L19 8"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M15 8H19V12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <h3 className={styles.suggestionTitle}>
-                Consultoria de Negócios
-              </h3>
-              <button type="button" className={styles.suggestionLink}>
-                Explorar especialistas
-              </button>
-            </article>
-
-            <article
-              className={`${styles.suggestionCard} ${styles.suggestionCardLight}`}
-            >
-              <div className={styles.suggestionIcon} aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6 4L18 20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M18 4L6 20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M4 8H10"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M14 16H20"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <h3 className={styles.suggestionTitle}>Tradução Técnica</h3>
-              <p className={styles.suggestionPrice}>A partir de R$ 45,00/pág</p>
-            </article>
-
-            <article
-              className={`${styles.suggestionCard} ${styles.suggestionCardBlue}`}
-            >
-              <div className={styles.suggestionBlueContent}>
-                <div>
-                  <h3 className={styles.suggestionTitleBlue}>
-                    Marketing Digital
-                  </h3>
-                  <p className={styles.suggestionDescBlue}>
-                    Impulsione suas vendas
-                  </p>
-                </div>
-
-                <div className={styles.suggestionRocket} aria-hidden="true">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 4L20 10L12 18L6 12L14 4Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <div className={styles.suggestionIcon} aria-hidden="true">
+                    <img
+                      src={skill.icon}
+                      alt=""
+                      style={{ width: "20px", height: "20px" }}
                     />
-                    <circle cx="14" cy="10" r="1.6" fill="currentColor" />
-                  </svg>
-                </div>
-              </div>
-            </article>
-          </div>
-        </section>
+                  </div>
+                  <h3 className={styles.suggestionTitle}>{skill.name}</h3>
+                  <p className={styles.suggestionDescription}>
+                    {skill.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
 
       <button

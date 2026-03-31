@@ -12,7 +12,8 @@ export function AppHeader({ firstName }: AppHeaderProps) {
         <span className={styles.welcome}>Oque você precisa fazer hoje?</span>
       </div>
 
-      <button
+      {/* TODO: MVP - Ativar notificações futuramente */}
+      {/* <button
         type="button"
         className={styles.iconButton}
         aria-label="Notificacoes"
@@ -40,7 +41,7 @@ export function AppHeader({ firstName }: AppHeaderProps) {
             strokeLinejoin="round"
           />
         </svg>
-      </button>
+      </button> */}
     </header>
   );
 }

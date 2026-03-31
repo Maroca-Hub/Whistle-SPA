@@ -355,6 +355,13 @@
   color: #1f2937;
 }
 
+.suggestionDescription {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
 .suggestionPrice {
   margin: 0;
   font-size: 0.875rem;
