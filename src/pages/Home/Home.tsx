@@ -55,6 +55,16 @@ export function Home() {
     setCreateTaskError(null);
   }, []);
 
+  const openTaskModalWithSkill = useCallback((skill: Skill) => {
+    setIsTaskModalClosing(false);
+    setIsTaskModalOpen(true);
+    setSelectedSkill(skill);
+    setDescription("");
+    setCustomerHasResources(false);
+    setTaskImage(null);
+    setCreateTaskError(null);
+  }, []);
+
   const closeTaskModal = useCallback(() => {
     if (!isTaskModalOpen || isCreatingTask) {
       return;
@@ -418,7 +428,12 @@ export function Home() {
 
           <div className={styles.skillsList}>
             {skills.map((skill) => (
-              <button key={skill.id} type="button" className={styles.skillChip}>
+              <button
+                key={skill.id}
+                type="button"
+                className={styles.skillChip}
+                onClick={() => openTaskModalWithSkill(skill)}
+              >
                 <img
                   src={skill.icon}
                   alt=""
