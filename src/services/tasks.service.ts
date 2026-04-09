@@ -116,7 +116,7 @@ export const tasksService = {
   },
   getTaskDetails: (taskId: string) => api.get<TaskDetails>(`/tasks/${taskId}`),
   getTaskCandidates: (taskId: string) =>
-    api.get<TaskCandidate[]>(`/tasks/${taskId}/candidates`),
+    api.get<TaskCandidate[]>(`/tasks/${taskId}/bids`),
   createReview: (taskId: string, body: { rating: number; comment: string }) =>
     api.post<TaskReview>(`/tasks/${taskId}/reviews`, body),
   cancelTask: (taskId: string) =>

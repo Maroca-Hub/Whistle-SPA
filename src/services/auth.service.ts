@@ -36,7 +36,7 @@ export const authService = {
     api.get<void>(`/auth/otp/${encodeURIComponent(email)}`),
   loginWithOtp: (credentials: LoginWithOtpRequest) =>
     api.post<LoginResponse>("/auth/otp", credentials),
-  getGoogleLoginUrl: () => api.buildUrl("/auth"),
+  getGoogleLoginUrl: () => api.buildUrl("/auth?origin=WHISTLE"),
   me: () => api.get<MeResponse>("/me"),
   updateMe: ({ firstName, lastName, profilePicture }: UpdateMeRequest) => {
     const formData = new FormData();
