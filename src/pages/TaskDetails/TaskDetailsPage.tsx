@@ -345,17 +345,25 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   }, [reviewComment, reviewRating, taskId]);
   const status = getStatusConfig(task?.status ?? null);
   const isPendingTask = task?.status === "PENDING";
-  const candidateName = task?.candidate
-    ? fullName(task.candidate.first_name, task.candidate.last_name)
+  const selectedProfessional = task?.bid?.candidate ?? task?.candidate ?? null;
+  const selectedProfessionalBidAmount =
+    task?.bid?.amount ?? task?.candidate?.bid?.amount ?? 0;
+  const selectedProfessionalRating =
+    task?.bid?.candidate_rating ?? task?.candidate?.rating ?? null;
+  const candidateName = selectedProfessional
+    ? fullName(selectedProfessional.first_name, selectedProfessional.last_name)
     : "Aguardando profissional";
 
   const candidateRating = useMemo(() => {
-    if (task?.candidate?.rating) {
-      return Number(task.candidate.rating).toFixed(1);
+    if (
+      selectedProfessionalRating !== null &&
+      selectedProfessionalRating !== undefined
+    ) {
+      return Number(selectedProfessionalRating).toFixed(1);
     }
 
     return "-";
-  }, [task]);
+  }, [selectedProfessionalRating]);
 
   return (
     <main className={styles.container}>
@@ -469,13 +477,13 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                     type="button"
                     className={styles.proInfo}
                     onClick={() =>
-                      task.candidate &&
-                      navigate(`/executor/${task.candidate.id}`)
+                      selectedProfessional &&
+                      navigate(`/executor/${selectedProfessional.id}`)
                     }
                   >
                     <div className={styles.proAvatar}>
                       <img
-                        src={task.candidate?.profile_picture}
+                        src={selectedProfessional?.profile_picture}
                         alt=""
                         aria-hidden="true"
                       />
@@ -494,7 +502,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                   <div className={styles.priceBlock}>
                     <p className={styles.priceLabel}>VALOR</p>
                     <p className={styles.priceValue}>
-                      {formatCurrency(task.candidate?.bid?.amount ?? 0)}
+                      {formatCurrency(selectedProfessionalBidAmount)}
                     </p>
                   </div>
                 </article>
@@ -605,10 +613,10 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                         task.customer.first_name,
                         task.customer.last_name,
                       )
-                    : task.candidate
+                    : selectedProfessional
                       ? fullName(
-                          task.candidate.first_name,
-                          task.candidate.last_name,
+                          selectedProfessional.first_name,
+                          selectedProfessional.last_name,
                         )
                       : "Profissional";
 
@@ -653,10 +661,10 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                   <article className={styles.reviewCard}>
                     <p className={styles.reviewHint}>
                       Como foi sua experiência com{" "}
-                      {task.candidate
+                      {selectedProfessional
                         ? fullName(
-                            task.candidate.first_name,
-                            task.candidate.last_name,
+                            selectedProfessional.first_name,
+                            selectedProfessional.last_name,
                           )
                         : "o profissional"}
                       ?
