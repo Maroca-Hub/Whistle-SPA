@@ -3,10 +3,11 @@ import { BottomNav } from "../../components/BottomNav/BottomNav";
 import { chatsService } from "../../services/chats.service";
 import {
   tasksService,
-  type TaskCandidate,
+  type TaskBidSummary,
   type TaskDetails,
 } from "../../services/tasks.service";
 import { wsService } from "../../services/ws.service";
+import { useUser } from "../../hooks/useUser";
 import styles from "./TaskDetailsPage.module.css";
 
 interface TaskDetailsPageProps {
@@ -53,9 +54,78 @@ function fullName(firstName?: string, lastName?: string): string {
   return [firstName, lastName].filter(Boolean).join(" ").trim();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseIncomingBid(data: unknown): TaskBidSummary | null {
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  if (
+    typeof data.id === "string" &&
+    typeof data.task_id === "string" &&
+    typeof data.executor_id === "string" &&
+    typeof data.amount === "number" &&
+    isRecord(data.candidate)
+  ) {
+    return data as unknown as TaskBidSummary;
+  }
+
+  if (
+    typeof data.id === "string" &&
+    typeof data.executor_id === "string" &&
+    isRecord(data.bid) &&
+    typeof data.bid.id === "string" &&
+    typeof data.bid.task_id === "string" &&
+    typeof data.bid.amount === "number"
+  ) {
+    const candidateRating =
+      typeof data.rating === "number"
+        ? data.rating
+        : typeof data.rating === "string"
+          ? Number(data.rating)
+          : null;
+
+    return {
+      id: data.bid.id,
+      task_id: data.bid.task_id,
+      executor_id: data.executor_id,
+      amount: data.bid.amount,
+      status: typeof data.bid.status === "string" ? data.bid.status : "PENDING",
+      candidate_rating: Number.isFinite(candidateRating)
+        ? candidateRating
+        : null,
+      candidate: {
+        id: data.id,
+        email: typeof data.email === "string" ? data.email : "",
+        first_name: typeof data.first_name === "string" ? data.first_name : "",
+        last_name: typeof data.last_name === "string" ? data.last_name : "",
+        profile_picture:
+          typeof data.profile_picture === "string"
+            ? data.profile_picture
+            : undefined,
+        rating:
+          typeof candidateRating === "number" ? candidateRating : undefined,
+        created_at: typeof data.created_at === "string" ? data.created_at : "",
+        updated_at:
+          typeof data.updated_at === "string" ? data.updated_at : null,
+      },
+      created_at:
+        typeof data.bid.created_at === "string" ? data.bid.created_at : "",
+      updated_at:
+        typeof data.bid.updated_at === "string" ? data.bid.updated_at : null,
+    };
+  }
+
+  return null;
+}
+
 export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
+  const { user } = useUser();
   const [task, setTask] = useState<TaskDetails | null>(null);
-  const [candidates, setCandidates] = useState<TaskCandidate[]>([]);
+  const [bids, setBids] = useState<TaskBidSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isReviewed, setIsReviewed] = useState(false);
@@ -64,11 +134,11 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   const [confirmAction, setConfirmAction] = useState<
     "complete" | "cancel" | null
   >(null);
-  const [confirmCandidateAction, setConfirmCandidateAction] = useState<{
+  const [confirmBidAction, setConfirmBidAction] = useState<{
     type: "accept" | "reject";
-    candidate: TaskCandidate;
+    bid: TaskBidSummary;
   } | null>(null);
-  const [isProcessingCandidate, setIsProcessingCandidate] = useState(false);
+  const [isProcessingBid, setIsProcessingBid] = useState(false);
 
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -86,19 +156,19 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
       try {
         const response = await tasksService.getTaskDetails(taskId);
 
-        const shouldLoadCandidates = response.status === "PENDING";
+        const shouldLoadBids = response.status === "PENDING";
         const isReviewed =
           response.reviews &&
           response.reviews.some(
             (review) => review.reviewer_id === response.customer_id,
           );
-        const taskCandidates = shouldLoadCandidates
-          ? await tasksService.getTaskCandidates(taskId)
+        const taskBids = shouldLoadBids
+          ? await tasksService.getTaskBids(taskId, user?.id)
           : [];
 
         if (isMounted) {
           setTask(response);
-          setCandidates(taskCandidates);
+          setBids(taskBids);
           setIsReviewed(isReviewed);
         }
       } catch {
@@ -117,7 +187,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
     return () => {
       isMounted = false;
     };
-  }, [taskId]);
+  }, [taskId, user?.id]);
 
   useEffect(() => {
     wsService.connect();
@@ -126,14 +196,17 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
       try {
         const parsed = JSON.parse(event.data);
 
-        if (
-          parsed.type === "TASK_BIDDED" &&
-          parsed.data?.bid?.task_id === taskId
-        ) {
-          setCandidates((prev) => {
-            const existingIds = new Set(prev.map((c) => c.id));
-            if (existingIds.has(parsed.data.id)) return prev;
-            return [...prev, parsed.data as TaskCandidate];
+        if (parsed.type === "TASK_BIDDED") {
+          const incomingBid = parseIncomingBid(parsed.data);
+
+          if (!incomingBid || incomingBid.task_id !== taskId) {
+            return;
+          }
+
+          setBids((prev) => {
+            const existingIds = new Set(prev.map((bid) => bid.id));
+            if (existingIds.has(incomingBid.id)) return prev;
+            return [...prev, incomingBid];
           });
         }
       } catch (err) {
@@ -171,11 +244,10 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   }, [taskId]);
 
   const handleAwardBid = useCallback(
-    async (candidate: TaskCandidate) => {
-      if (!candidate.bid) return;
-      setIsProcessingCandidate(true);
+    async (bid: TaskBidSummary) => {
+      setIsProcessingBid(true);
       try {
-        await tasksService.awardBid(taskId, candidate.bid.id);
+        await tasksService.awardBid(taskId, bid.id);
         const updated = await tasksService.getTaskDetails(taskId);
         const isReviewed =
           updated.reviews &&
@@ -183,28 +255,29 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
             (review) => review.reviewer_id === updated.customer_id,
           );
         setTask(updated);
-        setCandidates([]);
+        setBids([]);
         setIsReviewed(isReviewed);
       } catch {
         // keep current state
       } finally {
-        setIsProcessingCandidate(false);
+        setIsProcessingBid(false);
       }
     },
     [taskId],
   );
 
   const handleDeclineBid = useCallback(
-    async (candidate: TaskCandidate) => {
-      if (!candidate.bid) return;
-      setIsProcessingCandidate(true);
+    async (bid: TaskBidSummary) => {
+      setIsProcessingBid(true);
       try {
-        await tasksService.declineBid(taskId, candidate.bid.id);
-        setCandidates((prev) => prev.filter((c) => c.id !== candidate.id));
+        await tasksService.declineBid(taskId, bid.id);
+        setBids((prev) =>
+          prev.filter((currentBid) => currentBid.id !== bid.id),
+        );
       } catch {
         // keep current state
       } finally {
-        setIsProcessingCandidate(false);
+        setIsProcessingBid(false);
       }
     },
     [taskId],
@@ -407,23 +480,25 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
 
             {isPendingTask && (
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Candidatos</h3>
+                <h3 className={styles.sectionTitle}>Ofertas</h3>
 
                 <div className={styles.candidatesList}>
-                  {candidates.map((candidate) => (
+                  {bids.map((bid) => (
                     <article
-                      key={candidate.id}
+                      key={bid.id}
                       className={`${styles.proCard} ${styles.candidateCard}`}
                     >
                       <div className={styles.candidateHeader}>
                         <button
                           type="button"
                           className={styles.proInfo}
-                          onClick={() => navigate(`/executor/${candidate.id}`)}
+                          onClick={() =>
+                            navigate(`/executor/${bid.candidate.id}`)
+                          }
                         >
                           <div className={styles.proAvatar}>
                             <img
-                              src={candidate.profile_picture}
+                              src={bid.candidate.profile_picture}
                               alt=""
                               aria-hidden="true"
                             />
@@ -432,12 +507,12 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                           <div>
                             <p className={styles.proName}>
                               {fullName(
-                                candidate.first_name,
-                                candidate.last_name,
+                                bid.candidate.first_name,
+                                bid.candidate.last_name,
                               )}
                             </p>
                             <p className={styles.proMeta}>
-                              ★ {Number(candidate.rating ?? 0).toFixed(1)}
+                              ★ {Number(bid.candidate_rating ?? 0).toFixed(1)}
                             </p>
                           </div>
                         </button>
@@ -445,7 +520,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                         <div className={styles.priceBlock}>
                           <p className={styles.priceLabel}>VALOR</p>
                           <p className={styles.priceValue}>
-                            {formatCurrency(candidate.bid?.amount ?? 0)}
+                            {formatCurrency(bid.amount)}
                           </p>
                         </div>
                       </div>
@@ -455,9 +530,9 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                           type="button"
                           className={styles.rejectButton}
                           onClick={() =>
-                            setConfirmCandidateAction({
+                            setConfirmBidAction({
                               type: "reject",
-                              candidate,
+                              bid,
                             })
                           }
                         >
@@ -467,9 +542,9 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                           type="button"
                           className={styles.acceptButton}
                           onClick={() =>
-                            setConfirmCandidateAction({
+                            setConfirmBidAction({
                               type: "accept",
-                              candidate,
+                              bid,
                             })
                           }
                         >
@@ -479,10 +554,9 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                     </article>
                   ))}
 
-                  {candidates.length === 0 && (
+                  {bids.length === 0 && (
                     <p className={styles.feedback}>
-                      Estamos procurando por profissionais para sua tarefa.
-                      Fique de olho!
+                      Ainda não há ofertas para essa tarefa. Fique de olho!
                     </p>
                   )}
                 </div>
@@ -698,11 +772,11 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
         </div>
       )}
 
-      {confirmCandidateAction && (
+      {confirmBidAction && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalCard}>
             <p className={styles.modalMessage}>
-              {confirmCandidateAction.type === "accept"
+              {confirmBidAction.type === "accept"
                 ? "Deseja mesmo aceitar essa oferta?"
                 : "Deseja mesmo recusar essa oferta?"}
             </p>
@@ -711,7 +785,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               <div className={styles.proInfo}>
                 <div className={styles.proAvatar}>
                   <img
-                    src={confirmCandidateAction.candidate.profile_picture}
+                    src={confirmBidAction.bid.candidate.profile_picture}
                     alt=""
                     aria-hidden="true"
                   />
@@ -719,15 +793,15 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
                 <div>
                   <p className={styles.proName}>
                     {fullName(
-                      confirmCandidateAction.candidate.first_name,
-                      confirmCandidateAction.candidate.last_name,
+                      confirmBidAction.bid.candidate.first_name,
+                      confirmBidAction.bid.candidate.last_name,
                     )}
                   </p>
                   <p className={styles.proMeta}>
                     ★{" "}
-                    {Number(
-                      confirmCandidateAction.candidate.rating ?? 0,
-                    ).toFixed(1)}
+                    {Number(confirmBidAction.bid.candidate_rating ?? 0).toFixed(
+                      1,
+                    )}
                   </p>
                 </div>
               </div>
@@ -735,9 +809,7 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               <div className={styles.priceBlock}>
                 <p className={styles.priceLabel}>VALOR</p>
                 <p className={styles.priceValue}>
-                  {formatCurrency(
-                    confirmCandidateAction.candidate.bid?.amount ?? 0,
-                  )}
+                  {formatCurrency(confirmBidAction.bid.amount)}
                 </p>
               </div>
             </div>
@@ -746,25 +818,25 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
               <button
                 type="button"
                 className={styles.modalCancelButton}
-                onClick={() => setConfirmCandidateAction(null)}
+                onClick={() => setConfirmBidAction(null)}
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 className={styles.modalConfirmButton}
-                disabled={isProcessingCandidate}
+                disabled={isProcessingBid}
                 onClick={async () => {
-                  const action = confirmCandidateAction;
-                  setConfirmCandidateAction(null);
+                  const action = confirmBidAction;
+                  setConfirmBidAction(null);
                   if (action.type === "accept") {
-                    await handleAwardBid(action.candidate);
+                    await handleAwardBid(action.bid);
                   } else {
-                    await handleDeclineBid(action.candidate);
+                    await handleDeclineBid(action.bid);
                   }
                 }}
               >
-                {isProcessingCandidate ? "Aguarde..." : "Confirmar"}
+                {isProcessingBid ? "Aguarde..." : "Confirmar"}
               </button>
             </div>
           </div>

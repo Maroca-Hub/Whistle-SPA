@@ -53,6 +53,19 @@ export interface TaskBid {
   task_id: string;
   executor_id: string;
   amount: number;
+  status?: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface TaskBidSummary {
+  id: string;
+  task_id: string;
+  executor_id: string;
+  amount: number;
+  status: string;
+  candidate_rating: number | null;
+  candidate: TaskUser;
   created_at: string;
   updated_at: string | null;
 }
@@ -115,8 +128,20 @@ export const tasksService = {
     return api.get<CustomerTask[]>(`/tasks/customer?${params.toString()}`);
   },
   getTaskDetails: (taskId: string) => api.get<TaskDetails>(`/tasks/${taskId}`),
-  getTaskCandidates: (taskId: string) =>
-    api.get<TaskCandidate[]>(`/tasks/${taskId}/bids`),
+  getTaskBids: (taskId: string, executorId?: string) => {
+    const params = new URLSearchParams();
+
+    if (executorId) {
+      params.set("executorId", executorId);
+    }
+
+    const query = params.toString();
+    const path = query
+      ? `/tasks/${taskId}/bids?${query}`
+      : `/tasks/${taskId}/bids`;
+
+    return api.get<TaskBidSummary[]>(path);
+  },
   createReview: (taskId: string, body: { rating: number; comment: string }) =>
     api.post<TaskReview>(`/tasks/${taskId}/reviews`, body),
   cancelTask: (taskId: string) =>
