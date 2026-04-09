@@ -122,6 +122,19 @@ function parseIncomingBid(data: unknown): TaskBidSummary | null {
   return null;
 }
 
+function parseCanceledBid(
+  data: unknown,
+): { id: string; task_id?: string } | null {
+  if (!isRecord(data) || typeof data.id !== "string") {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    task_id: typeof data.task_id === "string" ? data.task_id : undefined,
+  };
+}
+
 export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
   const { user } = useUser();
   const [task, setTask] = useState<TaskDetails | null>(null);
@@ -208,6 +221,24 @@ export function TaskDetailsPage({ taskId }: TaskDetailsPageProps) {
             if (existingIds.has(incomingBid.id)) return prev;
             return [...prev, incomingBid];
           });
+
+          return;
+        }
+
+        if (parsed.type === "BID_CANCELED") {
+          const canceledBid = parseCanceledBid(parsed.data);
+
+          if (
+            !canceledBid ||
+            (canceledBid.task_id && canceledBid.task_id !== taskId)
+          ) {
+            return;
+          }
+
+          setBids((prev) => prev.filter((bid) => bid.id !== canceledBid.id));
+          setConfirmBidAction((prev) =>
+            prev?.bid.id === canceledBid.id ? null : prev,
+          );
         }
       } catch (err) {
         console.error("Erro ao processar mensagem do websocket:", err);
